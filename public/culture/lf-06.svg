@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 1104" role="img" aria-label="LurkFeed Football — Grass Field">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#166534"/>
+    </linearGradient>
+  </defs>
+  <rect width="828" height="1104" fill="url(#bg)"/>
+  <rect x="120" y="780" width="588" height="4" rx="2" fill="#faf8f5" opacity="0.4"/>
+    <circle cx="414" cy="480" r="90" fill="none" stroke="#faf8f5" stroke-width="2" opacity="0.55"/>
+  <text x="414" y="1020" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="600" letter-spacing="3" fill="#faf8f5" opacity="0.7">LURKFEED</text>
+  <text x="414" y="1055" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#faf8f5" opacity="0.45">Football. The fun parts.</text>
+</svg>

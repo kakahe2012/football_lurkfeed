@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf8f5;
+  --foreground: #2c2c2c;
+  --muted: #6b6b6b;
+  --accent: #3d6b5e;
+  --card: #ffffff;
+  --border: #e8e4df;
 }
 
 @theme inline {
@@ -12,15 +16,328 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: auto;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 瀑布流：双列手机，三列平板+ */
+.masonry-columns {
+  column-count: 2;
+  column-gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .masonry-columns {
+    column-count: 2;
+    column-gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .masonry-columns {
+    column-count: 3;
+    column-gap: 1rem;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  width: 100%;
+}
+
+/* ============================================================
+ * Article body — base prose
+ * ============================================================ */
+.prose-article {
+  color: var(--foreground);
+}
+
+.prose-article p {
+  margin: 1.1rem 0;
+  line-height: 1.78;
+  color: #2b2b2b;
+  font-size: 1.05rem;
+}
+
+.prose-article h2 {
+  margin: 2.25rem 0 0.85rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0d0d0d;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 7rem; /* clear the sticky article header on #anchor jumps */
+}
+
+.prose-article h3 {
+  margin: 1.6rem 0 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  scroll-margin-top: 7rem;
+}
+
+/* Anchor heading hover affordance (subtle, only on hover, no clutter) */
+.prose-article h2[id]:hover::before,
+.prose-article h3[id]:hover::before {
+  content: "#";
+  position: absolute;
+  margin-left: -1.1rem;
+  color: #0d6e5c;
+  opacity: 0.5;
+  font-weight: 700;
+}
+.prose-article h2[id],
+.prose-article h3[id] {
+  position: relative;
+}
+
+.prose-article a {
+  color: #0d6e5c;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-article ul,
+.prose-article ol {
+  padding-left: 1.25rem;
+  margin: 1rem 0;
+}
+
+.prose-article ul li,
+.prose-article ol li {
+  margin: 0.4rem 0;
+  line-height: 1.7;
+}
+
+.prose-article img {
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.prose-article figure {
+  margin: 1.75rem 0;
+}
+
+.prose-article figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: #9b9b9b;
+  text-align: center;
+}
+
+/* ============================================================
+ * Lead / intro paragraph (KC v3)
+ * ============================================================ */
+.prose-article .article-lead {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  font-weight: 500;
+  color: #1f1f1f;
+  margin: 0 0 1.75rem;
+}
+
+/* ============================================================
+ * Pull-quote
+ * ============================================================ */
+.prose-article .pull-quote,
+.prose-article blockquote {
+  border-left: 4px solid #0d6e5c;
+  background: #f6f5f1;
+  margin: 2rem 0;
+  padding: 1rem 1.25rem;
+  font-size: 1.12rem;
+  font-weight: 600;
+  font-style: italic;
+  color: #0d0d0d;
+  line-height: 1.55;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* ============================================================
+ * Key Takeaways
+ * ============================================================ */
+.prose-article .takeaways {
+  background: #f6f5f1;
+  border-left: 4px solid #0d6e5c;
+  border-radius: 0 0.6rem 0.6rem 0;
+  padding: 1.1rem 1.25rem;
+  margin: 0 0 1.75rem;
+}
+.prose-article .takeaways h3 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0d6e5c;
+  margin: 0 0 0.6rem;
+}
+.prose-article .takeaways ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.prose-article .takeaways ul li {
+  position: relative;
+  padding: 0.3rem 0 0.3rem 1.1rem;
+  font-size: 0.95rem;
+  color: #2b2b2b;
+  line-height: 1.55;
+  margin: 0;
+}
+.prose-article .takeaways ul li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: #0d6e5c;
+  font-weight: 700;
+}
+
+/* ============================================================
+ * Fact box
+ * ============================================================ */
+.prose-article .fact-box {
+  background: #f8f7f2;
+  border-radius: 0.75rem;
+  padding: 1.15rem 1.25rem;
+  margin: 1.75rem 0;
+}
+.prose-article .fact-box h4 {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0d6e5c;
+  margin: 0 0 0.65rem;
+}
+.prose-article .fact-box ul,
+.prose-article .fact-box ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.prose-article .fact-box li {
+  font-size: 0.95rem;
+  color: #2b2b2b;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9e5dc;
+}
+.prose-article .fact-box li:last-child {
+  border-bottom: none;
+}
+.prose-article .fact-box li strong {
+  color: #0d0d0d;
+}
+
+/* ============================================================
+ * Ranked list (listicles)
+ * ============================================================ */
+.prose-article .ranked-list {
+  counter-reset: rank;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+.prose-article .ranked-list .rank-item {
+  counter-increment: rank;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #ece8e0;
+  list-style: none;
+}
+.prose-article .ranked-list .rank-item:last-child {
+  border-bottom: none;
+}
+.prose-article .ranked-list .rank-item::before {
+  content: counter(rank);
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  background: #0d0d0d;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prose-article .ranked-list .rank-content h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.prose-article .ranked-list .rank-content p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #555;
+}
+
+/* ============================================================
+ * FAQ section (GEO core)
+ * ============================================================ */
+.prose-article .faq-section {
+  margin: 2.5rem 0 1rem;
+  padding: 1.5rem 0;
+  border-top: 2px solid #0d6e5c;
+  border-bottom: 2px solid #0d6e5c;
+}
+.prose-article .faq-section h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0d6e5c;
+  margin: 0 0 1.25rem;
+}
+.prose-article .faq-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid #ece8e0;
+}
+.prose-article .faq-item:last-child {
+  border-bottom: none;
+}
+.prose-article .faq-item h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+.prose-article .faq-item p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+/* ============================================================
+ * Source note
+ * ============================================================ */
+.prose-article .source-note {
+  font-size: 0.78rem;
+  color: #9b9b9b;
+  font-style: italic;
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #ece8e0;
+}
+
+/* Hide imported in-article tag chips & external CTA — we render our own */
+.prose-article .article-tags,
+.prose-article .read-more,
+.prose-article .internal-link-card {
+  display: none;
 }

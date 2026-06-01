@@ -1,0 +1,33 @@
+{
+  "site": {
+    "name": "Feel Football",
+    "tagline": "Sem jargão. Sem estatísticas demais. Apenas histórias de futebol que mexem com você.",
+    "headline": "Role devagar. Entenda devagar. Apaixone-se devagar.",
+    "shareSite": "Compartilhar site",
+    "search": "Buscar",
+    "home": "Início",
+    "copied": "Link copiado",
+    "share": "Compartilhar",
+    "copyLink": "Copiar link",
+    "readMore": "Ler →",
+    "quickRead": "Leitura rápida",
+    "endOfFeed": "Você viu tudo · Volte em breve",
+    "popularTitle": "Em alta",
+    "popularSubtitle": "Top histórias · últimos 3 dias",
+    "searchTitle": "Buscar histórias",
+    "searchPlaceholder": "Jogadores, países, emoções…",
+    "searching": "Buscando…",
+    "noResults": "Nenhuma história encontrada",
+    "back": "Voltar",
+    "nextStory": "Próxima",
+    "continueReading": "Continue lendo",
+    "youMayLike": "Você também pode gostar",
+    "copyArticleLink": "Copiar link do artigo",
+    "backToFeed": "Voltar às histórias",
+    "privacy": "Privacidade",
+    "language": "Idioma"
+  },
+  "article": {
+    "minRead": "{minutes} min de leitura"
+  }
+}

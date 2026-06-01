@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 1104" role="img" aria-label="LurkFeed Football — Floodlights">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="828" height="1104" fill="url(#bg)"/>
+  <circle cx="414" cy="520" r="120" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.35"/>
+    <path d="M414 400 L474 460 L454 540 L374 540 L354 460 Z" fill="none" stroke="#fbbf24" stroke-width="2.5" opacity="0.5"/>
+  <text x="414" y="1020" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="600" letter-spacing="3" fill="#fbbf24" opacity="0.7">LURKFEED</text>
+  <text x="414" y="1055" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#fbbf24" opacity="0.45">Football. The fun parts.</text>
+</svg>

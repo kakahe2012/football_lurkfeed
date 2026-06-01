@@ -1,0 +1,33 @@
+{
+  "site": {
+    "name": "Feel Football",
+    "tagline": "No jargon. No stats overload. Just football stories that hit you in the feels.",
+    "headline": "Scroll slowly. Understand slowly. Fall in love slowly.",
+    "shareSite": "Share site",
+    "search": "Search",
+    "home": "Home",
+    "copied": "Link copied",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "readMore": "Read →",
+    "quickRead": "Quick read",
+    "endOfFeed": "You're all caught up · Check back for new stories",
+    "popularTitle": "Trending",
+    "popularSubtitle": "Top stories · last 3 days",
+    "searchTitle": "Search stories",
+    "searchPlaceholder": "Players, countries, emotions…",
+    "searching": "Searching…",
+    "noResults": "No stories found",
+    "back": "Back",
+    "nextStory": "Next story",
+    "continueReading": "Keep scrolling",
+    "youMayLike": "You may also like",
+    "copyArticleLink": "Copy article link",
+    "backToFeed": "Back to stories",
+    "privacy": "Privacy",
+    "language": "Language"
+  },
+  "article": {
+    "minRead": "{minutes} min read"
+  }
+}

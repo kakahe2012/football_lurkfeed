@@ -1,65 +1,93 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { MasonryFeed } from "@/components/feed/MasonryFeed";
+import { getPublishedPosts, getTrendingPostsRecent } from "@/lib/data/posts";
+import {
+  buildItemListSchema,
+  buildBreadcrumbSchema,
+} from "@/lib/seo/structured-data";
+import { getSiteUrl } from "@/lib/utils";
 
-export default function Home() {
+export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "LurkFeed Football — Football. The fun parts.",
+  description:
+    "World Cup gossip, drama and culture for new fans. Stories, players, fashion, memes — the messy magic of football, no jargon required.",
+  keywords: [
+    "World Cup 2026",
+    "football gossip",
+    "football culture",
+    "World Cup stories",
+    "football for new fans",
+    "World Cup drama",
+    "football memes",
+    "football fashion",
+  ],
+  alternates: { canonical: getSiteUrl() },
+  openGraph: {
+    title: "LurkFeed Football — Football. The fun parts.",
+    description:
+      "World Cup gossip, drama and culture for new fans. Built for stories, not stats.",
+    type: "website",
+    siteName: "LurkFeed Football",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LurkFeed Football — Football. The fun parts.",
+    description:
+      "World Cup gossip, drama and culture — built for new fans.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    "max-snippet": -1,
+    "max-image-preview": "large",
+  },
+};
+
+export default async function HomePage() {
+  const [posts, trending] = await Promise.all([
+    getPublishedPosts(12),
+    getTrendingPostsRecent(3, 10),
+  ]);
+
+  // Front-page CollectionPage schema: tells Google + AI engines that the
+  // homepage is an editorial feed of N current stories. Combined with the
+  // Organization + WebSite schema in the root layout, this gives crawlers
+  // a clean entity graph to start from.
+  const base = getSiteUrl();
+  const itemList = buildItemListSchema(posts.slice(0, 12), {
+    name: "Latest Football Stories — LurkFeed Football",
+    url: base,
+    description:
+      "Hand-picked World Cup gossip, drama and culture stories for new fans.",
+  });
+  const breadcrumb = buildBreadcrumbSchema([{ name: "Home", url: `${base}/` }]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-[#FAF8F5]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
+      <SiteHeader />
+      <ContentLayout trending={trending}>
+        <section className="mb-5 px-1">
+          <p className="text-sm leading-relaxed text-stone-500">
+            Your World Cup gossip, drama & culture corner — built for new fans.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          <h1 className="mt-2 text-xl font-semibold leading-snug text-stone-900 md:text-2xl">
+            Football. The fun parts.
+          </h1>
+        </section>
+        <MasonryFeed initialPosts={posts} />
+      </ContentLayout>
+    </main>
   );
 }

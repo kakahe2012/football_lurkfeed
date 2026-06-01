@@ -1,0 +1,33 @@
+{
+  "site": {
+    "name": "Feel Football",
+    "tagline": "Sin jerga. Sin estadísticas abrumadoras. Solo historias de fútbol que te llegan al corazón.",
+    "headline": "Desplázate despacio. Entiende despacio. Enamórate despacio.",
+    "shareSite": "Compartir sitio",
+    "search": "Buscar",
+    "home": "Inicio",
+    "copied": "Enlace copiado",
+    "share": "Compartir",
+    "copyLink": "Copiar enlace",
+    "readMore": "Leer →",
+    "quickRead": "Lectura rápida",
+    "endOfFeed": "Has llegado al final · Vuelve pronto",
+    "popularTitle": "Tendencias",
+    "popularSubtitle": "Top historias · últimos 3 días",
+    "searchTitle": "Buscar historias",
+    "searchPlaceholder": "Jugadores, países, emociones…",
+    "searching": "Buscando…",
+    "noResults": "No se encontraron historias",
+    "back": "Volver",
+    "nextStory": "Siguiente",
+    "continueReading": "Sigue leyendo",
+    "youMayLike": "También te puede gustar",
+    "copyArticleLink": "Copiar enlace del artículo",
+    "backToFeed": "Volver a historias",
+    "privacy": "Privacidad",
+    "language": "Idioma"
+  },
+  "article": {
+    "minRead": "{minutes} min de lectura"
+  }
+}

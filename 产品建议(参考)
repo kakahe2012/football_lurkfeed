@@ -1,0 +1,481 @@
+Football Entertainment Platform（世界杯新球迷网站）
+整体系统设计方案（V1 MVP + AI内容系统）
+
+你现在要做的，已经不是一个“内容网站”。
+
+而是：
+
+一个 AI 驱动的足球情绪媒体系统
+
+核心目标：
+
+用 AI + 情绪内容 + 世界杯热点
+快速批量生成可消费、可传播、可广告变现的足球内容。
+
+你真正的优势不是“内容深度”。
+
+而是：
+
+内容生产速度 + 情绪包装能力 + SEO/社交传播能力
+
+所以：
+
+整个系统必须围绕：
+
+核心目标	系统设计
+快速上线	极简架构
+全球访问	Edge CDN
+SEO	SSR + 超快加载
+AI量产内容	Agent化
+高广告收益	原生广告流
+沉浸浏览	Feed流
+可扩展	AI工作流
+一、整体产品架构（非常关键）
+
+整个系统建议分为：
+
+1. 前台 H5 内容网站（用户访问）
+
+即：
+
+用户刷内容的网站。
+
+类似：
+
+BuzzFeed
+Medium
+Pinterest
+TikTok Feed
+2. 后台 CMS + AI Agent 工作台（核心）
+
+这是整个项目真正的大脑。
+
+你真正的核心竞争力在后台。
+
+因为：
+
+未来不是“写文章”。
+
+而是：
+
+AI批量制造情绪内容。
+3. AI内容生产系统（重点）
+
+自动：
+
+找热点
+找球星
+找故事
+生成标题
+生成封面
+改写公开资讯
+自动SEO
+自动插广告
+自动发布
+
+这是核心。
+
+二、整个网站结构（前台 H5）
+
+你应该：
+
+极简
+
+不要传统门户。
+
+首页结构（核心）
+顶部：
+LOGO            Search
+
+没有复杂导航。
+
+只有：
+
+Logo
+搜索
+Profile（可选）
+主体：
+无限Feed流（核心）
+
+类似：
+
+[大图]
+😭 The penalty miss that haunted a country
+
+[双列小卡]
+🔥 Why everyone loves Mbappe
+👑 Ronaldo’s luxury lifestyle
+
+[横向故事卡]
+Top 10 football villains
+
+核心：
+
+无限下拉
+AI推荐
+高情绪标题
+大图驱动
+Feed类型（非常关键）
+
+Feed不能只有一种。
+
+建议：
+
+1. Story Feed（主流）
+
+情绪故事。
+
+占80%。
+
+2. Quick Bite（短内容）
+
+类似：
+
+Did you know?
+Brazil once lost 1-7 at home.
+
+适合停留。
+
+3. Drama Feed
+
+争议/八卦。
+
+CTR最高。
+
+4. Easy Football
+
+小白内容。
+
+例如：
+
+Offside explained in 20 seconds
+三、文章页（最重要）
+
+你的网站真正赚钱的地方：
+
+是文章页
+
+不是首页。
+
+推荐结构：
+1. Hero Image（巨大封面）
+
+必须强视觉。
+
+情绪优先。
+
+2. 超大标题
+
+像YouTube。
+
+不是新闻标题。
+
+3. Short Intro（非常关键）
+
+前3秒抓人。
+
+例如：
+
+England fans thought “this was finally the year.”
+
+Then everything collapsed again.
+4. 中间大量插图/GIF
+
+新球迷不喜欢纯文字。
+
+5. AI生成的“Related Stories”
+
+例如：
+
+You may also like:
+💔 The greatest player who never won the World Cup
+
+这是提升PV核心。
+
+6. Feed式下一篇
+
+不要返回首页。
+
+而是：
+
+下滑直接进入下一篇
+
+像TikTok。
+
+这非常重要。
+
+四、广告系统设计（重点）
+
+你真正收入来源：
+
+广告展示量 × 页面深度
+
+所以：
+
+系统必须最大化：
+
+停留时间
+浏览页数
+推荐广告布局
+1. Feed原生广告（核心）
+
+每8篇插1个广告。
+
+样式：
+
+Sponsored
+🔥 Best World Cup Jerseys
+
+像内容。
+
+CTR很高。
+
+2. 文中广告
+
+阅读50%插入。
+
+3. Sticky Footer
+
+移动端底部悬浮。
+
+4. Exit Intent广告
+
+用户准备离开时：
+弹出：
+
+Before you go:
+The saddest football story ever
+
+不是广告。
+
+而是继续留用户。
+
+五、AI Agent后台（整个项目核心）
+
+这是最重要部分。
+
+AI CMS 系统（核心设计）
+
+不是普通CMS。
+
+而是：
+
+AI内容工厂
+后台核心模块
+模块	作用
+Dashboard	数据总览
+AI Topic Hunter	热点发现
+AI Writer	自动写作
+AI Rewrite	改写公开资讯
+AI Thumbnail	自动封面
+AI SEO	SEO优化
+Publisher	自动发布
+Ad Manager	广告管理
+Analytics	数据分析
+六、AI内容工作流（重点）
+
+这是整个系统灵魂。
+
+Step 1：热点发现 Agent
+
+自动抓取：
+
+Reddit足球热帖
+Twitter/X趋势
+Google Trends
+YouTube足球热视频
+世界杯相关新闻
+
+然后：
+
+AI总结：
+
+Trending Topic:
+Why everyone is mocking England fans again
+Step 2：标题生成 Agent
+
+自动生成：
+
+20个高CTR标题
+
+例如：
+
+😭 England fans are heartbroken AGAIN
+🔥 The real reason people hate this football club
+Step 3：内容生成 Agent
+
+基于：
+
+Wikipedia
+新闻
+历史数据
+公开资料
+
+自动生成：
+
+文章结构：
+Hook
+Story
+Emotion
+Conflict
+Ending
+CTA
+
+不是传统新闻。
+
+Step 4：AI Rewrite Agent（重要）
+
+避免SEO重复。
+
+自动：
+
+改写
+情绪化
+口语化
+TikTok化
+Step 5：AI图片系统
+
+自动：
+
+生成封面
+添加标题
+社交缩略图
+Step 6：SEO Agent
+
+自动生成：
+
+Meta Description
+Tags
+Keywords
+Schema
+OG Image
+Step 7：自动发布
+
+支持：
+
+定时发布
+社交同步
+自动推Twitter/X
+自动推Telegram
+七、技术架构（推荐）
+MVP最快方案（强烈推荐）
+前端
+Next.js
+
+原因：
+
+SEO极强
+SSR
+全球访问快
+Google友好
+UI
+TailwindCSS
+
+快速开发。
+
+CMS
+Supabase + 自定义AI后台
+
+不要WordPress。
+
+原因：
+
+太重
+AI工作流难做
+后期扩展差
+数据库
+PostgreSQL
+图片
+Cloudflare R2
+
+极便宜。
+
+CDN
+Cloudflare
+
+必须。
+
+世界杯流量会全球化。
+
+AI
+OpenAI + Claude + Gemini
+
+混合调用。
+
+八、数据库设计（核心）
+content_posts
+字段	类型
+id	uuid
+title	text
+slug	text
+content	richtext
+hero_image	text
+emotion_type	enum
+tags	json
+seo_title	text
+seo_desc	text
+publish_status	enum
+created_at	timestamp
+ai_jobs
+字段	类型
+job_type	text
+prompt	text
+result	json
+status	enum
+trending_topics
+
+用于AI热点池。
+
+九、最关键的系统（推荐算法）
+
+你未来真正的增长点：
+
+Emotion Recommendation Engine
+
+不是：
+
+你喜欢阿根廷
+
+而是：
+
+你喜欢悲情故事
+
+这是关键。
+
+系统自动学习：
+
+用户喜欢：
+
+Drama
+Heartbreak
+GOAT debate
+Luxury life
+
+然后推荐类似内容。
+
+十、数据指标（极重要）
+
+后台必须重点看：
+
+指标	意义
+CTR	标题能力
+Scroll Depth	内容质量
+Read Time	沉浸感
+Pages/Session	Feed效果
+RPM	广告收益
+Topic Performance	哪类情绪最赚钱
+十一、真正的商业飞轮（核心）
+
+未来会形成：
+
+热点
+→ AI生成
+→ Feed分发
+→ 广告收益
+→ 更多内容
+→ 更多SEO
+→ 更多流量
+→ 更多数据
+→ 更强推荐
+
+这是媒体飞轮。

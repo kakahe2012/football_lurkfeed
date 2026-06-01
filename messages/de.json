@@ -1,0 +1,33 @@
+{
+  "site": {
+    "name": "Feel Football",
+    "tagline": "Kein Jargon. Keine Statistik-Flut. Nur Fußballgeschichten, die berühren.",
+    "headline": "Langsam scrollen. Langsam verstehen. Langsam verlieben.",
+    "shareSite": "Seite teilen",
+    "search": "Suchen",
+    "home": "Start",
+    "copied": "Link kopiert",
+    "share": "Teilen",
+    "copyLink": "Link kopieren",
+    "readMore": "Lesen →",
+    "quickRead": "Kurz lesen",
+    "endOfFeed": "Alles gelesen · Schau bald wieder vorbei",
+    "popularTitle": "Trending",
+    "popularSubtitle": "Top Stories · letzte 3 Tage",
+    "searchTitle": "Geschichten suchen",
+    "searchPlaceholder": "Spieler, Länder, Emotionen…",
+    "searching": "Suche…",
+    "noResults": "Keine Geschichten gefunden",
+    "back": "Zurück",
+    "nextStory": "Weiter",
+    "continueReading": "Weiterlesen",
+    "youMayLike": "Das könnte dir auch gefallen",
+    "copyArticleLink": "Artikellink kopieren",
+    "backToFeed": "Zurück zu den Stories",
+    "privacy": "Datenschutz",
+    "language": "Sprache"
+  },
+  "article": {
+    "minRead": "{minutes} Min. Lesezeit"
+  }
+}
