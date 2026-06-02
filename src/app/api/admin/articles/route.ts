@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
         ...p,
         analytics: statsMap[p.id] || { page_views: p.view_count || 0, unique_sessions: 0, sources: [] },
       })),
+      persisted: true,
     });
   }
 
@@ -74,9 +75,9 @@ export async function GET(request: NextRequest) {
         sources: [
           { source: "google", visits: Math.round(p.view_count * 0.4) },
           { source: "direct", visits: Math.round(p.view_count * 0.3) },
-          { source: "twitter", visits: Math.round(p.view_count * 0.15) },
         ],
       },
     })),
+    persisted: false,
   });
 }

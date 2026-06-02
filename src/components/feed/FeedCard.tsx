@@ -4,7 +4,7 @@ import { StoryLink } from "@/components/navigation/StoryLink";
 import { Heart, Play } from "lucide-react";
 import type { Post } from "@/types";
 import { EMOTION_LABELS } from "@/types";
-import { formatReadTime } from "@/lib/utils";
+import { formatReadTime, buildStoryUrl } from "@/lib/utils";
 import { calculateWeightedLikes, formatLikeCount } from "@/lib/engagement";
 import { isVideoPost } from "@/lib/video";
 import { ShareButton } from "@/components/ui/ShareButton";
@@ -43,7 +43,11 @@ function VideoBadge() {
 
 export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
   const emotion = EMOTION_LABELS[post.emotion_type];
-  const shareUrl = `${siteUrl}/story/${post.slug}`;
+  const shareUrl = buildStoryUrl(
+    post.slug,
+    siteUrl ||
+      (typeof window !== "undefined" ? window.location.origin : undefined)
+  );
   const likeCount = formatLikeCount(calculateWeightedLikes(post));
   const isVideo = isVideoPost(post);
 
@@ -134,7 +138,7 @@ export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
               <Heart size={14} className="fill-rose-100" />
               {likeCount}
             </button>
-            <ShareButton url={shareUrl} title={post.title} label="Share" copiedLabel="Copied" size="sm" />
+            <ShareButton url={shareUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" />
           </div>
         </div>
       </article>
@@ -170,7 +174,7 @@ export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
           <Heart size={14} className="fill-rose-100" />
           {likeCount}
         </button>
-        <ShareButton url={shareUrl} title={post.title} label="Share" copiedLabel="Copied" size="sm" />
+        <ShareButton url={shareUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" />
       </div>
     </article>
   );

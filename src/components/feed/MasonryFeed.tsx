@@ -5,6 +5,12 @@ import type { Post } from "@/types";
 import { FeedCard, type FeedCardVariant } from "./FeedCard";
 import { FeedAdCard } from "@/components/ads/FeedAdCard";
 import { getSiteUrl } from "@/lib/utils";
+import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
+import {
+  getViewedPostIds,
+  markHomeVisit,
+  shouldUseDiscoverFeed,
+} from "@/lib/feed/viewed-posts";
 
 const AD_EVERY = parseInt(process.env.NEXT_PUBLIC_FEED_AD_EVERY || "6", 10);
 
@@ -37,20 +43,87 @@ function buildItems(posts: Post[]): FeedItem[] {
   return items;
 }
 
+function buildFeedQuery(
+  page: number,
+  discover: boolean,
+  viewedIds: string[],
+  limit = 8
+): string {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (discover) {
+    params.set("discover", "1");
+    if (viewedIds.length) params.set("seen", viewedIds.join(","));
+  }
+  return `/api/feed?${params.toString()}`;
+}
+
 export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [discoverMode, setDiscoverMode] = useState(false);
+  const [showDiscoverHint, setShowDiscoverHint] = useState(false);
+  const viewedIdsRef = useRef<string[]>([]);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const siteUrl =
     typeof window !== "undefined" ? window.location.origin : getSiteUrl();
+
+  useEffect(() => {
+    const viewed = getViewedPostIds();
+    viewedIdsRef.current = viewed;
+    const discover = shouldUseDiscoverFeed();
+    setDiscoverMode(discover);
+    setShowDiscoverHint(discover && viewed.length > 0);
+    markHomeVisit();
+
+    if (!discover) {
+      setPosts(initialPosts);
+      setPage(1);
+      setHasMore(true);
+      return;
+    }
+
+    // Return visit: fetch discover-ranked first page (unseen stories up front).
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(buildFeedQuery(0, true, viewed, 12));
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.posts?.length) {
+          setPosts(data.posts);
+          setPage(1);
+          setHasMore(data.hasMore ?? false);
+        } else {
+          setPosts(rankPostsForHomeFeed(initialPosts, viewed, "discover"));
+          setPage(1);
+          setHasMore(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setPosts(rankPostsForHomeFeed(initialPosts, viewed, "discover"));
+          setPage(1);
+          setHasMore(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialPosts]);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/feed?page=${page}`);
+      const res = await fetch(
+        buildFeedQuery(page, discoverMode, viewedIdsRef.current)
+      );
       const data = await res.json();
       if (data.posts?.length) {
         setPosts((prev) => {
@@ -64,13 +137,7 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore]);
-
-  useEffect(() => {
-    setPosts(initialPosts);
-    setPage(1);
-    setHasMore(true);
-  }, [initialPosts]);
+  }, [page, loading, hasMore, discoverMode]);
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -89,6 +156,11 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
 
   return (
     <div className="pb-20">
+      {showDiscoverHint && (
+        <p className="mb-3 px-0.5 text-xs text-stone-500">
+          Showing stories you haven&apos;t read yet
+        </p>
+      )}
       <div className="masonry-columns">
         {items.map((item) =>
           item.type === "ad" ? (

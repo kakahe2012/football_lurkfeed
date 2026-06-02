@@ -1,5 +1,6 @@
 import type { EmotionType } from "@/types";
 import { getOrCreateSessionId, getReferrer, getUtmParams } from "./session";
+import { markPostViewed } from "@/lib/feed/viewed-posts";
 
 export async function trackEvent(
   eventType: string,
@@ -13,6 +14,10 @@ export async function trackEvent(
 ) {
   const sessionId = data.sessionId || getOrCreateSessionId();
   const utm = getUtmParams();
+
+  if (eventType === "page_view" && data.postId) {
+    markPostViewed(data.postId);
+  }
 
   try {
     await fetch("/api/analytics", {

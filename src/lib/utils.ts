@@ -27,5 +27,26 @@ export function truncate(text: string, max: number): string {
 
 /** Production canonical: https://football.lurkfeed.com */
 export function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
+  const withoutTrailingSlash = raw.replace(/\/+$/, "");
+  if (/^https?:\/\//i.test(withoutTrailingSlash)) {
+    return withoutTrailingSlash;
+  }
+  return `https://${withoutTrailingSlash}`;
+}
+
+/** Absolute URL for a story detail page (feed share, copy link, OG, etc.). */
+export function buildStoryUrl(slug: string, origin?: string): string {
+  const base = (origin || getSiteUrl()).replace(/\/+$/, "");
+  return `${base}/story/${slug}`;
+}
+
+/** Ensure a path or partial URL becomes an absolute URL for clipboard sharing. */
+export function toAbsoluteUrl(url: string, origin?: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = (
+    origin ||
+    (typeof window !== "undefined" ? window.location.origin : getSiteUrl())
+  ).replace(/\/+$/, "");
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
 }

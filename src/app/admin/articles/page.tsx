@@ -1,22 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Eye, ExternalLink, Users } from "lucide-react";
-import { EMOTION_LABELS } from "@/types";
-import type { EmotionType, PublishStatus } from "@/types";
-import {
-  adminStyles,
-  getAdminToken,
-  EMOTION_LABELS_ZH,
-} from "@/components/admin/admin-styles";
+import { useCallback, useEffect, useState } from "react";
+import { adminStyles } from "@/components/admin/admin-styles";
+import { adminFetch } from "@/lib/admin/client";
+import { buildStoryUrl, getSiteUrl } from "@/lib/utils";
 
-interface ArticleRow {
+interface PostRow {
   id: string;
   title: string;
   slug: string;
-  emotion_type: EmotionType;
-  publish_status: PublishStatus;
+  tags: string[];
+  publish_status: string;
+  published_at?: string;
+  created_at: string;
+  share_count: number;
   view_count: number;
   analytics: {
     page_views: number;
@@ -25,144 +22,158 @@ interface ArticleRow {
   };
 }
 
-const STATUS_ZH: Record<string, string> = {
-  published: "已发布",
-  pending: "待审核",
-  draft: "草稿",
-  rejected: "已拒绝",
-};
-
 export default function AdminArticlesPage() {
-  const [articles, setArticles] = useState<ArticleRow[]>([]);
-  const [status, setStatus] = useState("all");
+  const [posts, setPosts] = useState<PostRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [persisted, setPersisted] = useState(true);
+  const siteBase = getSiteUrl();
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await adminFetch("/api/admin/articles?status=all");
+    const data = await res.json();
+    if (res.ok) {
+      setPosts(data.posts || []);
+      setPersisted(data.persisted !== false);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`/api/admin/articles?status=${status}`, {
-      headers: { Authorization: `Bearer ${getAdminToken()}` },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        setArticles(data.posts || []);
-        setLoading(false);
-      });
-  }, [status]);
+    load();
+  }, [load]);
+
+  const setStatus = async (id: string, publish_status: string) => {
+    await adminFetch(`/api/admin/articles/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ publish_status }),
+    });
+    load();
+  };
+
+  const copyLink = async (slug: string) => {
+    const url = buildStoryUrl(slug, siteBase);
+    await navigator.clipboard.writeText(url);
+  };
+
+  const topSource = (p: PostRow) =>
+    p.analytics.sources[0]?.source || "—";
+
+  if (loading) {
+    return <p className="text-sm text-gray-500">加载文章…</p>;
+  }
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className={adminStyles.pageTitle}>文章管理</h1>
-          <p className={adminStyles.pageDesc}>浏览量、独立访客、流量来源</p>
+          <p className={adminStyles.pageDesc}>
+            共 {posts.length} 篇
+            {!persisted && "（未连接数据库，仅本地种子）"}
+          </p>
         </div>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className={adminStyles.select}
-        >
-          <option value="all">全部状态</option>
-          <option value="published">已发布</option>
-          <option value="pending">待审核</option>
-          <option value="draft">草稿</option>
-          <option value="rejected">已拒绝</option>
-        </select>
+        <button type="button" onClick={load} className={adminStyles.btnSecondary}>
+          刷新
+        </button>
       </div>
 
-      {loading ? (
-        <p className="mt-8 text-gray-500">加载中…</p>
-      ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <table className={`${adminStyles.table} min-w-[800px]`}>
-            <thead>
-              <tr className={adminStyles.tableHead}>
-                <th className="p-4 font-medium">标题</th>
-                <th className="p-4 font-medium">情绪</th>
-                <th className="p-4 font-medium">状态</th>
-                <th className="p-4 font-medium">PV</th>
-                <th className="p-4 font-medium">访客</th>
-                <th className="p-4 font-medium">主要来源</th>
-                <th className="p-4 font-medium">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {articles.map((a) => {
-                const em = EMOTION_LABELS[a.emotion_type];
-                const topSource = a.analytics?.sources?.[0];
-                return (
-                  <tr key={a.id} className="hover:bg-gray-50">
-                    <td className={adminStyles.tableCell}>
-                      <p className="line-clamp-2 font-medium text-gray-900">{a.title}</p>
-                      <p className="mt-0.5 text-xs text-gray-400">/{a.slug}</p>
-                    </td>
-                    <td className={`${adminStyles.tableCell} whitespace-nowrap text-gray-600`}>
-                      {em?.emoji} {EMOTION_LABELS_ZH[a.emotion_type]}
-                    </td>
-                    <td className={adminStyles.tableCell}>
-                      <span
-                        className={
-                          a.publish_status === "published"
-                            ? adminStyles.badgeGreen
-                            : a.publish_status === "pending"
-                              ? adminStyles.badgeAmber
-                              : adminStyles.badgeGray
-                        }
+      <div className="mt-6 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className={adminStyles.table}>
+          <thead>
+            <tr>
+              <th className={`${adminStyles.tableHead} p-3`}>标题</th>
+              <th className={`${adminStyles.tableHead} p-3`}>上架时间</th>
+              <th className={`${adminStyles.tableHead} p-3`}>分享(真实)</th>
+              <th className={`${adminStyles.tableHead} p-3`}>标签</th>
+              <th className={`${adminStyles.tableHead} p-3`}>PV</th>
+              <th className={`${adminStyles.tableHead} p-3`}>UV</th>
+              <th className={`${adminStyles.tableHead} p-3`}>主要来源</th>
+              <th className={`${adminStyles.tableHead} p-3`}>状态</th>
+              <th className={`${adminStyles.tableHead} p-3`}>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map((p) => (
+              <tr key={p.id} className="hover:bg-gray-50/80">
+                <td className={`${adminStyles.tableCell} max-w-[220px]`}>
+                  <span className="line-clamp-2 font-medium text-gray-900">
+                    {p.title}
+                  </span>
+                </td>
+                <td className={`${adminStyles.tableCell} whitespace-nowrap text-gray-600`}>
+                  {p.published_at
+                    ? new Date(p.published_at).toLocaleString("zh-CN")
+                    : "—"}
+                </td>
+                <td className={`${adminStyles.tableCell} tabular-nums`}>
+                  {p.share_count}
+                </td>
+                <td className={adminStyles.tableCell}>
+                  <span className="line-clamp-2 text-xs text-gray-600">
+                    {(p.tags || []).slice(0, 4).join(", ") || "—"}
+                  </span>
+                </td>
+                <td className={`${adminStyles.tableCell} tabular-nums`}>
+                  {p.analytics.page_views}
+                </td>
+                <td className={`${adminStyles.tableCell} tabular-nums`}>
+                  {p.analytics.unique_sessions}
+                </td>
+                <td className={`${adminStyles.tableCell} text-xs text-gray-600`}>
+                  {topSource(p)}
+                </td>
+                <td className={adminStyles.tableCell}>
+                  {p.publish_status === "published" ? (
+                    <span className={adminStyles.badgeGreen}>已上架</span>
+                  ) : (
+                    <span className={adminStyles.badgeGray}>已下架</span>
+                  )}
+                </td>
+                <td className={adminStyles.tableCell}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.publish_status === "published" ? (
+                      <button
+                        type="button"
+                        className="text-xs text-amber-700 hover:underline"
+                        onClick={() => setStatus(p.id, "draft")}
                       >
-                        {STATUS_ZH[a.publish_status] || a.publish_status}
-                      </span>
-                    </td>
-                    <td className={adminStyles.tableCell}>
-                      <span className="inline-flex items-center gap-1 text-gray-700">
-                        <Eye size={14} className="text-gray-400" />
-                        {(a.analytics?.page_views ?? a.view_count).toLocaleString()}
-                      </span>
-                    </td>
-                    <td className={adminStyles.tableCell}>
-                      <span className="inline-flex items-center gap-1 text-gray-700">
-                        <Users size={14} className="text-gray-400" />
-                        {a.analytics?.unique_sessions?.toLocaleString() ?? "—"}
-                      </span>
-                    </td>
-                    <td className={`${adminStyles.tableCell} text-gray-500`}>
-                      {topSource ? (
-                        <>
-                          {topSource.source}{" "}
-                          <span className="text-gray-400">({topSource.visits})</span>
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className={adminStyles.tableCell}>
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/admin/articles/${a.id}`}
-                          className="rounded-md border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50"
-                        >
-                          详情
-                        </Link>
-                        {a.publish_status === "published" && (
-                          <a
-                            href={`/story/${a.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-md border border-gray-300 p-1 hover:bg-gray-50"
-                          >
-                            <ExternalLink size={14} />
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {articles.length === 0 && (
-            <p className="p-8 text-center text-gray-500">暂无文章</p>
-          )}
-        </div>
-      )}
+                        下架
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-xs text-emerald-700 hover:underline"
+                        onClick={() => setStatus(p.id, "published")}
+                      >
+                        上架
+                      </button>
+                    )}
+                    <a
+                      href={buildStoryUrl(p.slug, siteBase)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-gray-700 hover:underline"
+                    >
+                      详情
+                    </a>
+                    <button
+                      type="button"
+                      className="text-xs text-gray-700 hover:underline"
+                      onClick={() => copyLink(p.slug)}
+                    >
+                      链接
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!posts.length && (
+          <p className="p-8 text-center text-sm text-gray-500">暂无文章</p>
+        )}
+      </div>
     </div>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Link2, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, toAbsoluteUrl } from "@/lib/utils";
 
 interface ShareButtonProps {
+  /** Story or page URL — always copied to clipboard when provided. */
   url?: string;
   title?: string;
   label?: string;
@@ -29,9 +30,24 @@ export function ShareButton({
     e.preventDefault();
     e.stopPropagation();
 
-    const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "");
+    const shareUrl = url
+      ? toAbsoluteUrl(url)
+      : typeof window !== "undefined"
+        ? window.location.href
+        : "";
 
-    if (navigator.share && !url) {
+    if (!shareUrl) return;
+
+    // Explicit article/page URL → always copy link (feed + article detail).
+    if (url) {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      onShared?.();
+      setTimeout(() => setCopied(false), 2000);
+      return;
+    }
+
+    if (navigator.share) {
       try {
         await navigator.share({ title, url: shareUrl });
         onShared?.();

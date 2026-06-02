@@ -1,101 +1,102 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { BarChart3, DollarSign, Eye, TrendingUp, Zap } from "lucide-react";
-import { adminStyles, getAdminToken, EMOTION_LABELS_ZH } from "@/components/admin/admin-styles";
+import { adminStyles } from "@/components/admin/admin-styles";
+import { adminFetch } from "@/lib/admin/client";
+import type { DashboardStats } from "@/lib/admin/analytics-stats";
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    views: 1240000,
-    rpm: 4.2,
-    ctr: 12.4,
-    pagesPerSession: 3.8,
-    pending: 0,
-  });
+function StatCard({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string | number;
+  sub?: string;
+}) {
+  return (
+    <div className={adminStyles.card}>
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold tabular-nums text-gray-900">
+        {value}
+      </p>
+      {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+    </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/posts?status=pending", {
-      headers: { Authorization: `Bearer ${getAdminToken()}` },
-    })
+    adminFetch("/api/admin/dashboard")
       .then((r) => r.json())
-      .then((data) => {
-        setStats((s) => ({ ...s, pending: data.posts?.length || 0 }));
-      });
+      .then((d) => setStats(d))
+      .finally(() => setLoading(false));
   }, []);
 
-  const cards = [
-    { label: "总浏览量", value: "124 万", icon: Eye },
-    { label: "RPM 广告收益", value: `$${stats.rpm}`, icon: DollarSign },
-    { label: "标题 CTR", value: `${stats.ctr}%`, icon: TrendingUp },
-    { label: "会话深度", value: `${stats.pagesPerSession} 页`, icon: BarChart3 },
-    { label: "待审文章", value: String(stats.pending), icon: Zap },
-  ];
+  if (loading) {
+    return <p className="text-sm text-gray-500">加载数据…</p>;
+  }
 
-  const topStories = [
-    { title: "别再装懂越位了", views: 125000, emotion: "easy_football" },
-    { title: "足球巨星奢华生活内幕", views: 203000, emotion: "icons" },
-    { title: "英格兰球迷为何每届世界杯都心碎", views: 112000, emotion: "heartbreak" },
-  ];
+  if (!stats?.persisted) {
+    return (
+      <div>
+        <h1 className={adminStyles.pageTitle}>仪表盘</h1>
+        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+          <p className="font-medium">未连接 Supabase 数据库</p>
+          <p className="mt-2">
+            生产环境请在 Vercel 配置{" "}
+            <code className="rounded bg-white px-1">NEXT_PUBLIC_SUPABASE_URL</code>、
+            <code className="rounded bg-white px-1">SUPABASE_SERVICE_ROLE_KEY</code>
+            ，否则无法展示真实 UV/PV。前台种子文章仍可通过代码部署更新。
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <h1 className={adminStyles.pageTitle}>仪表盘</h1>
-      <p className={adminStyles.pageDesc}>AI 内容工厂运营概览</p>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {cards.map((c) => (
-          <div key={c.label} className={adminStyles.card}>
-            <c.icon className="h-4 w-4 text-gray-400" />
-            <p className="mt-3 text-2xl font-semibold text-gray-900">{c.value}</p>
-            <p className="text-xs text-gray-500">{c.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/admin/pipeline" className={adminStyles.btnPrimary}>
-          启动 AI 流水线
-        </Link>
-        <Link href="/admin/queue" className={adminStyles.btnSecondary}>
-          待审队列 ({stats.pending})
-        </Link>
-        <Link href="/admin/articles" className={adminStyles.btnSecondary}>
-          文章管理
-        </Link>
-      </div>
+      <p className={adminStyles.pageDesc}>全站真实访问与分享数据（UTC 日切）</p>
 
       <section className="mt-8">
-        <h2 className="text-sm font-medium text-gray-900">热门文章</h2>
-        <div className={`mt-3 overflow-hidden rounded-lg border border-gray-200 bg-white`}>
-          <table className={adminStyles.table}>
-            <thead>
-              <tr className={adminStyles.tableHead}>
-                <th className="p-4 font-medium">标题</th>
-                <th className="p-4 font-medium">情绪</th>
-                <th className="p-4 font-medium">浏览量</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topStories.map((s) => (
-                <tr key={s.title}>
-                  <td className={adminStyles.tableCell}>{s.title}</td>
-                  <td className={`${adminStyles.tableCell} text-gray-500`}>
-                    {EMOTION_LABELS_ZH[s.emotion] || s.emotion}
-                  </td>
-                  <td className={adminStyles.tableCell}>{s.views.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <h2 className="mb-3 text-sm font-medium text-gray-700">浏览量 PV / 访客 UV</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            label="总 PV"
+            value={stats.total.pv.pv.toLocaleString()}
+            sub={`UV ${stats.total.pv.uv.toLocaleString()}`}
+          />
+          <StatCard
+            label="今日 PV"
+            value={stats.today.pv.pv.toLocaleString()}
+            sub={`UV ${stats.today.pv.uv.toLocaleString()}`}
+          />
+          <StatCard
+            label="昨日 PV"
+            value={stats.yesterday.pv.pv.toLocaleString()}
+            sub={`UV ${stats.yesterday.pv.uv.toLocaleString()}`}
+          />
         </div>
       </section>
 
-      <section className={`mt-6 ${adminStyles.card}`}>
-        <h2 className="text-sm font-medium text-gray-900">内容增长飞轮</h2>
-        <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-          热点发现 → AI 九步生成 → Feed 分发 → 广告收益 → 更多内容 → SEO 流量 → 情绪推荐强化
-        </p>
+      <section className="mt-10">
+        <h2 className="mb-3 text-sm font-medium text-gray-700">
+          分享 / Copy link 点击
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <StatCard label="总分享" value={stats.total.share.toLocaleString()} />
+          <StatCard label="今日分享" value={stats.today.share.toLocaleString()} />
+          <StatCard
+            label="昨日分享"
+            value={stats.yesterday.share.toLocaleString()}
+          />
+        </div>
       </section>
     </div>
   );

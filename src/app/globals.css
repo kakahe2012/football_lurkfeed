@@ -52,6 +52,21 @@ body {
   }
 }
 
+/* 桌面侧栏出现时主栏更宽：lg 两列更易读，xl 三列 */
+@media (min-width: 1024px) {
+  .content-main .masonry-columns {
+    column-count: 2;
+    column-gap: 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .content-main .masonry-columns {
+    column-count: 3;
+    column-gap: 1.125rem;
+  }
+}
+
 .masonry-item {
   break-inside: avoid;
   margin-bottom: 0.75rem;

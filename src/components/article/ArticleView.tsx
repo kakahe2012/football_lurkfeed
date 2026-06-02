@@ -6,7 +6,7 @@ import { StoryLink } from "@/components/navigation/StoryLink";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import type { Post } from "@/types";
 import { EMOTION_LABELS } from "@/types";
-import { formatReadTime, slugify } from "@/lib/utils";
+import { formatReadTime, slugify, buildStoryUrl, getSiteUrl } from "@/lib/utils";
 import { ShareButton } from "@/components/ui/ShareButton";
 import { FeedCard } from "@/components/feed/FeedCard";
 import { TagChips } from "@/components/tags/TagChips";
@@ -20,6 +20,7 @@ import {
   isBrokenOrMissingImageUrl,
 } from "@/lib/media/resolve-image";
 import { trackEvent } from "@/lib/analytics/track";
+import { splitArticleHtmlForInlineAd } from "@/lib/ads/split-article-content";
 
 /**
  * Add stable `id` attributes to every <h2>/<h3> in the body.
@@ -56,15 +57,14 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
   const emotion = EMOTION_LABELS[post.emotion_type];
   const contentRef = useRef<HTMLDivElement>(null);
   const trackedMilestones = useRef<Set<number>>(new Set());
-  const [siteUrl, setSiteUrl] = useState("");
-  const [showInlineAd, setShowInlineAd] = useState(false);
+  const [origin, setOrigin] = useState(() => getSiteUrl());
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [post.slug]);
 
   useEffect(() => {
-    setSiteUrl(window.location.origin);
+    setOrigin(window.location.origin);
     trackEvent("page_view", {
       postId: post.id,
       emotionType: post.emotion_type,
@@ -80,7 +80,6 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
       const total = el.offsetHeight;
       const viewed = Math.min(total, Math.max(0, window.innerHeight - rect.top));
       const depth = Math.round((viewed / total) * 100);
-      if (depth >= 50 && !showInlineAd) setShowInlineAd(true);
       for (const milestone of [50, 90]) {
         if (depth >= milestone && !trackedMilestones.current.has(milestone)) {
           trackedMilestones.current.add(milestone);
@@ -97,13 +96,17 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [post.id, post.emotion_type, showInlineAd]);
+  }, [post.id, post.emotion_type]);
 
-  const articleUrl = siteUrl ? `${siteUrl}/story/${post.slug}` : `/story/${post.slug}`;
+  const articleUrl = buildStoryUrl(post.slug, origin);
   const isVideo = isVideoPost(post);
   const contentWithAnchors = useMemo(
     () => addHeadingAnchors(post.content),
     [post.content]
+  );
+  const { before: contentBeforeAd, after: contentAfterAd } = useMemo(
+    () => splitArticleHtmlForInlineAd(contentWithAnchors),
+    [contentWithAnchors]
   );
 
   useEffect(() => {
@@ -184,11 +187,20 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
         <p className="mt-4 text-lg leading-relaxed text-stone-600">{post.intro_hook}</p>
         <TagChips tags={post.tags} className="mt-4" max={6} />
 
-        <div ref={contentRef} className="prose-article mt-8" dangerouslySetInnerHTML={{ __html: contentWithAnchors }} />
-        {showInlineAd && <AdSlot placement="inline" className="my-8" />}
+        <div ref={contentRef} className="prose-article mt-8">
+          <div dangerouslySetInnerHTML={{ __html: contentBeforeAd }} />
+          {contentAfterAd ? (
+            <>
+              <AdSlot placement="inline" className="my-8" />
+              <div dangerouslySetInnerHTML={{ __html: contentAfterAd }} />
+            </>
+          ) : (
+            <AdSlot placement="inline" className="my-8" />
+          )}
+        </div>
 
         <div className="mt-10 flex flex-wrap gap-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200/80">
-          <ShareButton url={articleUrl} title={post.title} label="Copy article link" copiedLabel="Copied" onShared={() => trackEvent("share", { postId: post.id })} />
+          <ShareButton url={articleUrl} title={post.title} label="Copy link" copiedLabel="Copied" onShared={() => trackEvent("share", { postId: post.id })} />
           <Link href="/" className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100">
             More stories
           </Link>
@@ -199,7 +211,7 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
             <h2 className="text-base font-semibold text-stone-800">You may also like</h2>
             <div className="masonry-columns mt-4">
               {related.slice(0, 4).map((r, i) => (
-                <FeedCard key={r.id} post={r} variant={i === 0 ? "featured" : "card"} siteUrl={siteUrl} />
+                <FeedCard key={r.id} post={r} variant={i === 0 ? "featured" : "card"} siteUrl={origin} />
               ))}
             </div>
           </section>

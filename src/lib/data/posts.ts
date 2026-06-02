@@ -2,6 +2,8 @@ import type { EmotionType, Post, PublishStatus } from "@/types";
 import { SEED_POSTS } from "./seed-posts";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveHeroImage } from "@/lib/media/resolve-image";
+import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
+import { calculateHotScore, sortPostsByHot } from "@/lib/feed/hot-score";
 
 function normalizePost(row: Post): Post {
   const seed = row.slug || row.id;
@@ -43,30 +45,12 @@ function mapRow(row: Record<string, unknown>): Post {
 
 /**
  * Time-decayed hot score for ranking the homepage feed.
- *
- * Inspired by the Hacker News / Reddit "hot" formula:
- *
- *   score = (engagement_signal) / (age_hours + GRAVITY_OFFSET) ^ GRAVITY
- *
- * Engagement weights shares > likes > views (shares are the strongest "this is
- * worth your friend's attention" signal). Gravity controls how fast old stories
- * fall off the feed: with gravity 1.5 and offset 4, a 24h-old post with the
- * same engagement as a 1h-old post ranks ~1/8 as high — old stories survive
- * but fresh ones get the spotlight.
+ * Implementation lives in @/lib/feed/hot-score (shared client + server).
  */
-const HOT_GRAVITY = 1.5;
-const HOT_OFFSET_HOURS = 4;
-
-export function calculateHotScore(post: Post): number {
-  const ts = new Date(post.published_at || post.created_at).getTime();
-  const ageHours = Math.max(0, (Date.now() - ts) / 3_600_000);
-  const engagement =
-    post.share_count * 8 + post.view_count * 1 + (post.ctr_score || 0) * 200;
-  return (engagement + 1) / Math.pow(ageHours + HOT_OFFSET_HOURS, HOT_GRAVITY);
-}
+export { calculateHotScore } from "@/lib/feed/hot-score";
 
 function sortByHot(posts: Post[]): Post[] {
-  return [...posts].sort((a, b) => calculateHotScore(b) - calculateHotScore(a));
+  return sortPostsByHot(posts);
 }
 
 export type FeedSort = "hot" | "newest";
@@ -124,12 +108,17 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 export async function getPostsPaginated(
   page: number,
   pageSize = 8,
-  sort: FeedSort = "hot"
+  sort: FeedSort = "hot",
+  options?: { discover?: boolean; viewedIds?: string[] }
 ): Promise<{ posts: Post[]; hasMore: boolean }> {
   const all = await getPublishedPosts(200, sort);
+  const ranked =
+    options?.discover
+      ? rankPostsForHomeFeed(all, options.viewedIds ?? [], "discover")
+      : all;
   const start = page * pageSize;
-  const posts = all.slice(start, start + pageSize);
-  return { posts, hasMore: start + pageSize < all.length };
+  const posts = ranked.slice(start, start + pageSize);
+  return { posts, hasMore: start + pageSize < ranked.length };
 }
 
 export async function getRelatedPosts(

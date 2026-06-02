@@ -20,14 +20,14 @@ export function SidebarAd() {
 
   if (!client || !slot) {
     return (
-      <div className="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-3 py-10 text-center text-xs text-stone-400">
+      <div className="mt-3 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-2 py-8 text-center text-[11px] text-stone-400">
         Ad · set NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR
       </div>
     );
   }
 
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-stone-200/80 bg-white p-2">
+    <div className="mt-3 overflow-hidden rounded-xl border border-stone-200/80 bg-white p-1.5">
       <p className="mb-1 px-1 text-[10px] font-medium uppercase text-stone-400">Sponsored</p>
       <ins
         ref={adRef}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { isAuthorized } from "@/lib/admin/auth";
 import { parseArticleHtml } from "@/lib/import/parse-html";
+import { mirrorArticleAssets, type AssetMap } from "@/lib/import/article-assets";
 import {
   fixContentImageUrls,
   resolveHeroImage,
@@ -54,9 +55,8 @@ export async function POST(request: NextRequest) {
     items?: ImportItem[];
     status?: PublishStatus;
     emotion?: EmotionType;
-    /** When true, use the emotion supplied in `emotion` instead of the one auto-detected
-     *  from the article's category/tags. Defaults to auto-detect. */
     force_emotion?: boolean;
+    assets?: AssetMap;
   };
   try {
     body = await request.json();
@@ -77,11 +77,12 @@ export async function POST(request: NextRequest) {
 
   const status: PublishStatus = VALID_STATUS.has(body.status as PublishStatus)
     ? (body.status as PublishStatus)
-    : "pending";
+    : "published";
   const fallbackEmotion: EmotionType = VALID_EMOTIONS.has(body.emotion as EmotionType)
     ? (body.emotion as EmotionType)
     : "culture";
   const forceEmotion = Boolean(body.force_emotion);
+  const assets: AssetMap = body.assets && typeof body.assets === "object" ? body.assets : {};
 
   const supabase = await createServiceSupabaseClient();
   const results: ResultRow[] = [];
@@ -107,6 +108,16 @@ export async function POST(request: NextRequest) {
       let slug = parsed.slug;
       if (usedSlugs.has(slug)) slug = `${slug}-${randomSuffix()}`;
 
+      let content = parsed.content;
+      if (Object.keys(assets).length) {
+        content = await mirrorArticleAssets(
+          content,
+          slug,
+          filename,
+          assets
+        );
+      }
+
       const publishedAt =
         status === "published"
           ? parsed.published_at || new Date().toISOString()
@@ -115,7 +126,7 @@ export async function POST(request: NextRequest) {
       const record = {
         title: parsed.title,
         slug,
-        content: fixContentImageUrls(parsed.content, slug),
+        content: fixContentImageUrls(content, slug),
         intro_hook: parsed.intro_hook,
         hero_image: resolveHeroImage(parsed.hero_image, slug, "hero"),
         emotion_type: finalEmotion,
