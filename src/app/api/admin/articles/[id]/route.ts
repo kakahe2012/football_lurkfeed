@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { SEED_POSTS } from "@/lib/data/seed-posts";
 import { isAuthorized } from "@/lib/admin/auth";
+import {
+  canWriteSeedFile,
+  updateSeedPost,
+  type SeedPostPatch,
+} from "@/lib/admin/seed-persist";
 
 export async function GET(
   request: NextRequest,
@@ -129,6 +134,9 @@ export async function PATCH(
     if (body.title) updates.title = body.title;
     if (body.intro_hook) updates.intro_hook = body.intro_hook;
     if (body.tags) updates.tags = body.tags;
+    if (body.hero_image !== undefined) updates.hero_image = body.hero_image;
+    if (body.og_image !== undefined) updates.og_image = body.og_image;
+    if (body.content !== undefined) updates.content = body.content;
 
     const { data, error } = await supabase
       .from("posts")
@@ -141,5 +149,41 @@ export async function PATCH(
     return NextResponse.json({ post: data });
   }
 
-  return NextResponse.json({ ok: true, id, ...body });
+  const patch: SeedPostPatch = {};
+  if (body.hero_image !== undefined) patch.hero_image = body.hero_image;
+  if (body.og_image !== undefined) patch.og_image = body.og_image;
+  if (body.content !== undefined) patch.content = body.content;
+  if (body.publish_status) patch.publish_status = body.publish_status;
+
+  if (!Object.keys(patch).length) {
+    return NextResponse.json({ ok: true, id, message: "无字段更新" });
+  }
+
+  if (!canWriteSeedFile()) {
+    return NextResponse.json(
+      {
+        error:
+          "无法写入 seed-posts.ts（生产环境只读）。请在本地 npm run dev 修改后 git push。",
+      },
+      { status: 503 }
+    );
+  }
+
+  const { post, write } = await updateSeedPost(id, patch);
+  if (!post) {
+    return NextResponse.json({ error: "文章不存在" }, { status: 404 });
+  }
+  if (!write.ok) {
+    return NextResponse.json(
+      { error: write.error || "写入失败" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    post,
+    persisted: true,
+    seedFile: true,
+    message: "已写入 src/lib/data/seed-posts.ts，请 git commit 并 push 部署",
+  });
 }

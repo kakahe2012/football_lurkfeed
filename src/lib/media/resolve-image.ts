@@ -25,9 +25,11 @@ export function isBrokenOrMissingImageUrl(url: string | null | undefined): boole
   if (/^\/Users\//i.test(u)) return true;
   if (/^\/home\//i.test(u)) return true;
   if (/^[A-Za-z]:\\/.test(u)) return true;
-  // Relative paths that aren't site assets (e.g. /culture/ is OK)
-  if (u.startsWith("/") && !u.startsWith("//") && !u.startsWith("/culture/")) {
-    return true;
+  // Site-relative assets only (/culture/, /uploads/ from admin)
+  if (u.startsWith("/") && !u.startsWith("//")) {
+    return !(
+      u.startsWith("/culture/") || u.startsWith("/uploads/")
+    );
   }
   // Obviously placeholder / invalid
   if (u === "undefined" || u === "null") return true;
@@ -57,6 +59,14 @@ export function resolveHeroImage(
 ): string {
   if (!isBrokenOrMissingImageUrl(url)) return url!.trim();
   return getCultureImageUrl(seed, aspect);
+}
+
+/** Same URL the homepage FeedCard uses for cover (incl. culture fallback). */
+export function getFeedCoverImage(
+  heroImage: string | null | undefined,
+  slug: string
+): string {
+  return resolveHeroImage(heroImage, slug, "card");
 }
 
 /**

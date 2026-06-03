@@ -1,4 +1,9 @@
-import { sanitizeHtml, extractFirstImage, htmlToText } from "@/lib/sanitize";
+import {
+  sanitizeHtml,
+  extractFirstImage,
+  htmlToText,
+  stripLeadingContentImage,
+} from "@/lib/sanitize";
 import { slugify } from "@/lib/utils";
 import type { EmotionType } from "@/types";
 
@@ -275,7 +280,7 @@ export function parseArticleHtml(
 
   // Body content (sanitized)
   const rawBody = extractArticleContent(html);
-  const content = sanitizeHtml(rawBody);
+  const content = stripLeadingContentImage(sanitizeHtml(rawBody));
 
   // intro_hook precedence: lead → meta description → first 160 chars of plain text
   const intro =

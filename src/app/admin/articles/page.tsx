@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { adminStyles } from "@/components/admin/admin-styles";
+import { FallbackImage } from "@/components/media/FallbackImage";
 import { adminFetch } from "@/lib/admin/client";
 import { buildStoryUrl, getSiteUrl } from "@/lib/utils";
 
@@ -9,6 +11,7 @@ interface PostRow {
   id: string;
   title: string;
   slug: string;
+  hero_image?: string;
   tags: string[];
   publish_status: string;
   published_at?: string;
@@ -20,6 +23,34 @@ interface PostRow {
     unique_sessions: number;
     sources: { source: string; visits: number }[];
   };
+}
+
+/** Matches homepage FeedCard cover (resolveHeroImage + culture fallback). */
+function FeedCoverThumb({
+  heroImage,
+  slug,
+  title,
+}: {
+  heroImage?: string;
+  slug: string;
+  title: string;
+}) {
+  return (
+    <div
+      className="relative h-12 w-20 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-100"
+      title={title}
+    >
+      <FallbackImage
+        src={heroImage}
+        fallbackSeed={slug}
+        aspect="card"
+        alt=""
+        width={80}
+        height={48}
+        className="object-cover"
+      />
+    </div>
+  );
 }
 
 export default function AdminArticlesPage() {
@@ -82,6 +113,7 @@ export default function AdminArticlesPage() {
         <table className={adminStyles.table}>
           <thead>
             <tr>
+              <th className={`${adminStyles.tableHead} p-3 w-24`}>Feed 封面</th>
               <th className={`${adminStyles.tableHead} p-3`}>标题</th>
               <th className={`${adminStyles.tableHead} p-3`}>上架时间</th>
               <th className={`${adminStyles.tableHead} p-3`}>分享(真实)</th>
@@ -96,6 +128,13 @@ export default function AdminArticlesPage() {
           <tbody>
             {posts.map((p) => (
               <tr key={p.id} className="hover:bg-gray-50/80">
+                <td className={`${adminStyles.tableCell} p-3`}>
+                  <FeedCoverThumb
+                    heroImage={p.hero_image}
+                    slug={p.slug}
+                    title={p.title}
+                  />
+                </td>
                 <td className={`${adminStyles.tableCell} max-w-[220px]`}>
                   <span className="line-clamp-2 font-medium text-gray-900">
                     {p.title}
@@ -149,13 +188,19 @@ export default function AdminArticlesPage() {
                         上架
                       </button>
                     )}
+                    <Link
+                      href={`/admin/articles/${p.id}`}
+                      className="text-xs text-blue-700 hover:underline"
+                    >
+                      改图
+                    </Link>
                     <a
                       href={buildStoryUrl(p.slug, siteBase)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-gray-700 hover:underline"
                     >
-                      详情
+                      预览
                     </a>
                     <button
                       type="button"

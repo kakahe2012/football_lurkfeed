@@ -36,6 +36,21 @@ export function sanitizeHtml(dirty: string): string {
   return clean;
 }
 
+/**
+ * Remove the first <img> in article body HTML.
+ * Cover is shown separately via hero_image (same image as Feed).
+ */
+export function stripLeadingContentImage(html: string): string {
+  if (!html?.trim()) return html;
+  let s = html.trimStart();
+  if (!/^<img\b/i.test(s)) return html;
+  s = s
+    .replace(/^<img\b[^>]*\/?>\s*/i, "")
+    .replace(/^<img\b[\s\S]*?<\/img>\s*/i, "")
+    .trimStart();
+  return s;
+}
+
 /** Pull the first <img src> out of an HTML blob (used when importing files). */
 export function extractFirstImage(html: string): string | null {
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);

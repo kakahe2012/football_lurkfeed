@@ -2,6 +2,7 @@ import type { EmotionType, Post, PublishStatus } from "@/types";
 import { SEED_POSTS } from "./seed-posts";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveHeroImage } from "@/lib/media/resolve-image";
+import { stripLeadingContentImage } from "@/lib/sanitize";
 import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
 import { calculateHotScore, sortPostsByHot } from "@/lib/feed/hot-score";
 
@@ -9,6 +10,7 @@ function normalizePost(row: Post): Post {
   const seed = row.slug || row.id;
   return {
     ...row,
+    content: stripLeadingContentImage(row.content),
     hero_image: resolveHeroImage(row.hero_image, seed, "card"),
     og_image: row.og_image
       ? resolveHeroImage(row.og_image, `${seed}-og`, "hero")
