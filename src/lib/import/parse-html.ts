@@ -1,9 +1,9 @@
 import {
-  sanitizeHtml,
   extractFirstImage,
   htmlToText,
   stripLeadingContentImage,
 } from "@/lib/sanitize";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { slugify } from "@/lib/utils";
 import type { EmotionType } from "@/types";
 

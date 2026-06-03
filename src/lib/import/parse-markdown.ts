@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { sanitizeHtml, htmlToText, stripLeadingContentImage } from "@/lib/sanitize";
+import { htmlToText, stripLeadingContentImage } from "@/lib/sanitize";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { slugify } from "@/lib/utils";
 import type { EmotionType } from "@/types";
 

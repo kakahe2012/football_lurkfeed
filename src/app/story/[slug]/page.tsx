@@ -10,7 +10,7 @@ import {
 } from "@/lib/data/posts";
 import { buildPostMetadata } from "@/lib/seo/metadata";
 import { buildStoryGraph, buildBreadcrumbSchema } from "@/lib/seo/structured-data";
-import { sanitizeHtml } from "@/lib/sanitize";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { fixContentImageUrls } from "@/lib/media/resolve-image";
 import { getSiteUrl } from "@/lib/utils";
 import { getTagLabel } from "@/lib/data/tag-definitions";

@@ -1,40 +1,11 @@
-import DOMPurify from "isomorphic-dompurify";
-
-/**
- * Sanitize untrusted article HTML (AI output, imported HTML files, etc.)
- * before it is stored or rendered via dangerouslySetInnerHTML.
- *
- * Strips <script>, <iframe>, event handlers, javascript: URLs, etc.
- * Video embeds are handled separately through the whitelisted parseVideoUrl,
- * never through raw content HTML.
- */
-const ALLOWED_TAGS = [
-  "p", "br", "hr", "span", "div", "section", "article", "aside",
-  "h1", "h2", "h3", "h4", "h5", "h6",
-  "ul", "ol", "li",
-  "blockquote", "pre", "code",
-  "strong", "b", "em", "i", "u", "s", "mark", "small", "sub", "sup",
-  "a", "img", "figure", "figcaption",
-  "table", "thead", "tbody", "tr", "th", "td",
-];
-
-const ALLOWED_ATTR = [
-  "href", "src", "alt", "title", "class", "target", "rel",
-  "loading", "width", "height",
-];
-
-export function sanitizeHtml(dirty: string): string {
-  if (!dirty) return "";
-  const clean = DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
-    FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form", "input"],
-    FORBID_ATTR: ["onerror", "onload", "onclick", "style"],
-    ADD_ATTR: ["target"],
-  });
-  return clean;
-}
+// NOTE: This file is imported by hot-path route handlers (`/api/feed`,
+// `/api/tags`, `/api/search`) via `lib/data/posts.ts`. We must NOT pull
+// jsdom / isomorphic-dompurify into the closure of those routes because
+// it bloats the function bundle to ~10MB and breaks Vercel deploys.
+//
+// `sanitizeHtml` (the only DOMPurify-dependent helper) lives in
+// `./sanitize-html` and is consumed only by import scripts and the
+// statically-generated story page.
 
 /** First <img src> at the start of article body HTML. */
 export function getLeadingContentImageSrc(html: string): string | null {
