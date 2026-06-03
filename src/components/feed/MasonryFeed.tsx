@@ -178,6 +178,9 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
     };
   }, [initialPosts]);
 
+  const consecutiveErrorsRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMoreRef.current) return;
     loadingRef.current = true;
@@ -185,18 +188,44 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
     const offset = feedOffsetRef.current;
     try {
       const res = await fetch(
-        buildFeedQuery(offset, discoverModeRef.current, viewedIdsRef.current)
+        buildFeedQuery(offset, discoverModeRef.current, viewedIdsRef.current),
+        { cache: "no-store" }
       );
       if (!res.ok) throw new Error(`feed ${res.status}`);
       const data: FeedApiResponse = await res.json();
       applyFeedPage(data, offset);
+      consecutiveErrorsRef.current = 0;
     } catch {
-      /* keep hasMore true so scroll can retry */
+      // Transient errors should not end the feed. Keep hasMore=true and
+      // schedule a retry — the IntersectionObserver only fires on state
+      // change so we cannot rely on it to re-trigger while the sentinel
+      // is still in view.
+      consecutiveErrorsRef.current += 1;
+      if (consecutiveErrorsRef.current >= 5) {
+        setHasMore(false);
+        hasMoreRef.current = false;
+      } else {
+        const delay = Math.min(
+          800 * Math.pow(2, consecutiveErrorsRef.current - 1),
+          8000
+        );
+        if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = setTimeout(() => {
+          retryTimerRef.current = null;
+          loadMore();
+        }, delay);
+      }
     } finally {
       loadingRef.current = false;
       setLoading(false);
     }
   }, [applyFeedPage]);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const el = sentinelRef.current;

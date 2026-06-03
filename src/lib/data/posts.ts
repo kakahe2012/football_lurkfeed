@@ -73,38 +73,55 @@ function sortByNewest(posts: Post[]): Post[] {
 }
 
 /**
+ * Sync catalog from bundled seed-posts. Safe to call from any context
+ * (route handlers, edge, build) without touching cookies/Supabase.
+ */
+export function getSeedCatalog(sort: FeedSort = "hot"): Post[] {
+  const seedPublished = SEED_POSTS.filter(
+    (p) => p.publish_status === "published"
+  ).map(normalizePost);
+  return sort === "hot" ? sortByHot(seedPublished) : sortByNewest(seedPublished);
+}
+
+/**
  * Full published catalog for feeds. Merges seed-posts (site source of truth)
  * with Supabase rows so pagination is not capped by a partial DB import.
+ *
+ * Always falls back to the seed catalog if anything in the Supabase path
+ * throws — Route Handlers must never 500 because of the database client.
  */
 export async function getPublishedCatalog(
   sort: FeedSort = "hot"
 ): Promise<Post[]> {
-  const seedPublished = SEED_POSTS.filter(
-    (p) => p.publish_status === "published"
-  ).map(normalizePost);
+  const seedRanked = getSeedCatalog(sort);
 
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) {
-    return sort === "hot" ? sortByHot(seedPublished) : sortByNewest(seedPublished);
+  try {
+    const supabase = await createServerSupabaseClient();
+    if (!supabase) return seedRanked;
+
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("publish_status", "published")
+      .order("published_at", { ascending: false })
+      .limit(FEED_CATALOG_LIMIT);
+
+    if (error || !data?.length) return seedRanked;
+
+    const bySlug = new Map(
+      SEED_POSTS.filter((p) => p.publish_status === "published")
+        .map(normalizePost)
+        .map((p) => [p.slug, p] as const)
+    );
+    for (const row of data) {
+      bySlug.set(row.slug as string, mapRow(row as Record<string, unknown>));
+    }
+    const merged = [...bySlug.values()];
+    return sort === "hot" ? sortByHot(merged) : sortByNewest(merged);
+  } catch (err) {
+    console.error("[getPublishedCatalog] falling back to seed:", err);
+    return seedRanked;
   }
-
-  const { data, error } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("publish_status", "published")
-    .order("published_at", { ascending: false })
-    .limit(FEED_CATALOG_LIMIT);
-
-  if (error || !data?.length) {
-    return sort === "hot" ? sortByHot(seedPublished) : sortByNewest(seedPublished);
-  }
-
-  const bySlug = new Map(seedPublished.map((p) => [p.slug, p]));
-  for (const row of data) {
-    bySlug.set(row.slug as string, mapRow(row as Record<string, unknown>));
-  }
-  const merged = [...bySlug.values()];
-  return sort === "hot" ? sortByHot(merged) : sortByNewest(merged);
 }
 
 /**
@@ -148,7 +165,13 @@ export async function getPostsPaginated(
   nextOffset: number;
   total: number;
 }> {
-  const all = await getPublishedCatalog(sort);
+  let all: Post[];
+  try {
+    all = await getPublishedCatalog(sort);
+  } catch (err) {
+    console.error("[getPostsPaginated] catalog failed, using seed:", err);
+    all = getSeedCatalog(sort);
+  }
   const ranked =
     options?.discover
       ? rankPostsForHomeFeed(all, options.viewedIds ?? [], "discover")
