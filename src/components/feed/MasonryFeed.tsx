@@ -5,7 +5,6 @@ import type { Post } from "@/types";
 import { FeedCard, type FeedCardVariant } from "./FeedCard";
 import { FeedAdCard } from "@/components/ads/FeedAdCard";
 import { getSiteUrl } from "@/lib/utils";
-import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
 import {
   getViewedPostIds,
   markHomeVisit,
@@ -14,6 +13,7 @@ import {
 
 const AD_EVERY = parseInt(process.env.NEXT_PUBLIC_FEED_AD_EVERY || "6", 10);
 const PAGE_SIZE = 8;
+const INITIAL_SSR_COUNT = 12;
 
 interface MasonryFeedProps {
   initialPosts: Post[];
@@ -22,6 +22,13 @@ interface MasonryFeedProps {
 type FeedItem =
   | { type: "post"; post: Post; variant: FeedCardVariant }
   | { type: "ad"; key: string };
+
+type FeedApiResponse = {
+  posts?: Post[];
+  hasMore?: boolean;
+  nextOffset?: number;
+  total?: number;
+};
 
 function getVariant(index: number, post: Post): FeedCardVariant {
   if (index === 0 || index % 8 === 0) return "featured";
@@ -61,14 +68,24 @@ function buildFeedQuery(
   return `/api/feed?${params.toString()}`;
 }
 
+function applyHasMore(
+  data: FeedApiResponse,
+  loadedCount: number
+): boolean {
+  if (typeof data.hasMore === "boolean") return data.hasMore;
+  if (typeof data.total === "number") return loadedCount < data.total;
+  return true;
+}
+
 export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [discoverMode, setDiscoverMode] = useState(false);
   const [showDiscoverHint, setShowDiscoverHint] = useState(false);
   const viewedIdsRef = useRef<string[]>([]);
   const postsRef = useRef<Post[]>(initialPosts);
+  const feedOffsetRef = useRef(initialPosts.length);
+  const discoverModeRef = useRef(false);
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -78,17 +95,45 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
   postsRef.current = posts;
   hasMoreRef.current = hasMore;
 
+  const mergePosts = useCallback((incoming: Post[]) => {
+    if (!incoming.length) return postsRef.current;
+    const ids = new Set(postsRef.current.map((p) => p.id));
+    const fresh = incoming.filter((p) => !ids.has(p.id));
+    if (!fresh.length) return postsRef.current;
+    const next = [...postsRef.current, ...fresh];
+    postsRef.current = next;
+    setPosts(next);
+    return next;
+  }, []);
+
+  const applyFeedPage = useCallback(
+    (data: FeedApiResponse, offsetUsed: number) => {
+      const incoming = data.posts ?? [];
+      const next = mergePosts(incoming);
+      const nextOffset =
+        typeof data.nextOffset === "number"
+          ? data.nextOffset
+          : offsetUsed + incoming.length;
+      feedOffsetRef.current = nextOffset;
+      const more = applyHasMore(data, next.length);
+      setHasMore(more);
+      hasMoreRef.current = more;
+    },
+    [mergePosts]
+  );
+
   useEffect(() => {
     const viewed = getViewedPostIds();
     viewedIdsRef.current = viewed;
     const discover = shouldUseDiscoverFeed();
-    setDiscoverMode(discover);
+    discoverModeRef.current = discover;
     setShowDiscoverHint(discover && viewed.length > 0);
     markHomeVisit();
 
     if (!discover) {
       setPosts(initialPosts);
       postsRef.current = initialPosts;
+      feedOffsetRef.current = initialPosts.length;
       setHasMore(true);
       hasMoreRef.current = true;
       return;
@@ -97,28 +142,33 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(buildFeedQuery(0, true, viewed, 12));
-        const data = await res.json();
+        const res = await fetch(buildFeedQuery(0, true, viewed, INITIAL_SSR_COUNT));
+        const data: FeedApiResponse = await res.json();
         if (cancelled) return;
         if (data.posts?.length) {
-          setPosts(data.posts);
           postsRef.current = data.posts;
-          setHasMore(data.hasMore ?? false);
-          hasMoreRef.current = data.hasMore ?? false;
+          setPosts(data.posts);
+          feedOffsetRef.current =
+            typeof data.nextOffset === "number"
+              ? data.nextOffset
+              : data.posts.length;
+          const more = applyHasMore(data, data.posts.length);
+          setHasMore(more);
+          hasMoreRef.current = more;
         } else {
-          const ranked = rankPostsForHomeFeed(initialPosts, viewed, "discover");
-          setPosts(ranked);
-          postsRef.current = ranked;
-          setHasMore(ranked.length > PAGE_SIZE);
-          hasMoreRef.current = ranked.length > PAGE_SIZE;
+          setPosts(initialPosts);
+          postsRef.current = initialPosts;
+          feedOffsetRef.current = initialPosts.length;
+          setHasMore(true);
+          hasMoreRef.current = true;
         }
       } catch {
         if (!cancelled) {
-          const ranked = rankPostsForHomeFeed(initialPosts, viewed, "discover");
-          setPosts(ranked);
-          postsRef.current = ranked;
-          setHasMore(ranked.length > PAGE_SIZE);
-          hasMoreRef.current = ranked.length > PAGE_SIZE;
+          setPosts(initialPosts);
+          postsRef.current = initialPosts;
+          feedOffsetRef.current = initialPosts.length;
+          setHasMore(true);
+          hasMoreRef.current = true;
         }
       }
     })();
@@ -132,34 +182,21 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
     if (loadingRef.current || !hasMoreRef.current) return;
     loadingRef.current = true;
     setLoading(true);
+    const offset = feedOffsetRef.current;
     try {
-      const offset = postsRef.current.length;
       const res = await fetch(
-        buildFeedQuery(offset, discoverMode, viewedIdsRef.current)
+        buildFeedQuery(offset, discoverModeRef.current, viewedIdsRef.current)
       );
-      const data = await res.json();
-      const incoming: Post[] = data.posts ?? [];
-      const ids = new Set(postsRef.current.map((p) => p.id));
-      const fresh = incoming.filter((p) => !ids.has(p.id));
-
-      if (fresh.length > 0) {
-        const next = [...postsRef.current, ...fresh];
-        postsRef.current = next;
-        setPosts(next);
-      }
-
-      const more = Boolean(data.hasMore);
-      const stuck = more && fresh.length === 0;
-      setHasMore(stuck ? false : more);
-      hasMoreRef.current = stuck ? false : more;
+      if (!res.ok) throw new Error(`feed ${res.status}`);
+      const data: FeedApiResponse = await res.json();
+      applyFeedPage(data, offset);
     } catch {
-      setHasMore(false);
-      hasMoreRef.current = false;
+      /* keep hasMore true so scroll can retry */
     } finally {
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [discoverMode]);
+  }, [applyFeedPage]);
 
   useEffect(() => {
     const el = sentinelRef.current;

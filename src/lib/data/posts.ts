@@ -62,6 +62,51 @@ function sortByHot(posts: Post[]): Post[] {
 
 export type FeedSort = "hot" | "newest";
 
+const FEED_CATALOG_LIMIT = 500;
+
+function sortByNewest(posts: Post[]): Post[] {
+  return [...posts].sort(
+    (a, b) =>
+      new Date(b.published_at || b.created_at).getTime() -
+      new Date(a.published_at || a.created_at).getTime()
+  );
+}
+
+/**
+ * Full published catalog for feeds. Merges seed-posts (site source of truth)
+ * with Supabase rows so pagination is not capped by a partial DB import.
+ */
+export async function getPublishedCatalog(
+  sort: FeedSort = "hot"
+): Promise<Post[]> {
+  const seedPublished = SEED_POSTS.filter(
+    (p) => p.publish_status === "published"
+  ).map(normalizePost);
+
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) {
+    return sort === "hot" ? sortByHot(seedPublished) : sortByNewest(seedPublished);
+  }
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("publish_status", "published")
+    .order("published_at", { ascending: false })
+    .limit(FEED_CATALOG_LIMIT);
+
+  if (error || !data?.length) {
+    return sort === "hot" ? sortByHot(seedPublished) : sortByNewest(seedPublished);
+  }
+
+  const bySlug = new Map(seedPublished.map((p) => [p.slug, p]));
+  for (const row of data) {
+    bySlug.set(row.slug as string, mapRow(row as Record<string, unknown>));
+  }
+  const merged = [...bySlug.values()];
+  return sort === "hot" ? sortByHot(merged) : sortByNewest(merged);
+}
+
 /**
  * Default homepage feed. `sort = "hot"` blends recency with engagement so
  * fresh popular stories rise; `sort = "newest"` is pure publish time.
@@ -70,27 +115,7 @@ export async function getPublishedPosts(
   limit = 50,
   sort: FeedSort = "hot"
 ): Promise<Post[]> {
-  const supabase = await createServerSupabaseClient();
-
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("publish_status", "published")
-      .order("published_at", { ascending: false })
-      .limit(Math.max(limit, 200));
-
-    if (!error && data?.length) {
-      const all = data.map(mapRow);
-      const ranked = sort === "hot" ? sortByHot(all) : all;
-      return ranked.slice(0, limit);
-    }
-  }
-
-  const seed = SEED_POSTS.filter((p) => p.publish_status === "published").map(
-    normalizePost
-  );
-  const ranked = sort === "hot" ? sortByHot(seed) : seed;
+  const ranked = await getPublishedCatalog(sort);
   return ranked.slice(0, limit);
 }
 
@@ -117,8 +142,13 @@ export async function getPostsPaginated(
   pageSize = 8,
   sort: FeedSort = "hot",
   options?: { discover?: boolean; viewedIds?: string[] }
-): Promise<{ posts: Post[]; hasMore: boolean; nextOffset: number }> {
-  const all = await getPublishedPosts(200, sort);
+): Promise<{
+  posts: Post[];
+  hasMore: boolean;
+  nextOffset: number;
+  total: number;
+}> {
+  const all = await getPublishedCatalog(sort);
   const ranked =
     options?.discover
       ? rankPostsForHomeFeed(all, options.viewedIds ?? [], "discover")
@@ -130,6 +160,7 @@ export async function getPostsPaginated(
     posts,
     hasMore: nextOffset < ranked.length,
     nextOffset,
+    total: ranked.length,
   };
 }
 

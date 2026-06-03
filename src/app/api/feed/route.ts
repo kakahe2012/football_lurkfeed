@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     ? seenRaw.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const { posts, hasMore, nextOffset } = await getPostsPaginated(
+  const { posts, hasMore, nextOffset, total } = await getPostsPaginated(
     Number.isFinite(offset) ? offset : 0,
     pageSize,
     sort,
@@ -28,5 +28,5 @@ export async function GET(request: NextRequest) {
       viewedIds,
     }
   );
-  return NextResponse.json({ posts, hasMore, nextOffset });
+  return NextResponse.json({ posts, hasMore, nextOffset, total });
 }
