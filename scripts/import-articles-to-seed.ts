@@ -11,12 +11,18 @@ import {
 } from "../src/lib/media/resolve-image";
 import type { Post } from "../src/types";
 
+const args = process.argv.slice(2);
+const MERGE = args.includes("--merge");
 const ARTICLES_DIR =
-  process.argv[2] || "/Users/kaka/Downloads/articles";
+  args.find((a) => !a.startsWith("--")) || "/Users/kaka/Downloads/articles";
 const OUT_FILE = path.join(
   process.cwd(),
   "src/lib/data/seed-posts.ts"
 );
+
+function normalizeTitle(title: string): string {
+  return title.trim().toLowerCase();
+}
 
 function findEnglishHtmlFiles(dir: string): string[] {
   const out: string[] = [];
@@ -50,7 +56,7 @@ function engagementForIndex(i: number, total: number) {
   };
 }
 
-function main() {
+async function main() {
   const files = findEnglishHtmlFiles(ARTICLES_DIR);
   if (!files.length) {
     console.error(`No English HTML found under ${ARTICLES_DIR}`);
@@ -59,8 +65,21 @@ function main() {
 
   console.log(`Found ${files.length} English HTML files`);
 
-  const posts: Post[] = [];
+  let posts: Post[] = [];
   const usedSlugs = new Set<string>();
+  const usedTitles = new Set<string>();
+
+  if (MERGE) {
+    const { SEED_POSTS } = await import("../src/lib/data/seed-posts");
+    posts = [...SEED_POSTS];
+    for (const p of posts) {
+      usedSlugs.add(p.slug);
+      usedTitles.add(normalizeTitle(p.title));
+    }
+    console.log(`Merge mode: keeping ${posts.length} existing posts`);
+  }
+
+  let skipped = 0;
 
   for (let i = 0; i < files.length; i++) {
     const filePath = files[i];
@@ -68,9 +87,21 @@ function main() {
     const html = fs.readFileSync(filePath, "utf8");
     const parsed = parseArticleHtml(html, filename, "culture");
 
+    const titleKey = normalizeTitle(parsed.title);
+    if (usedTitles.has(titleKey)) {
+      console.log(`  ⊘ skip (duplicate title): ${parsed.title.slice(0, 60)}…`);
+      skipped++;
+      continue;
+    }
+
     let slug = parsed.slug;
-    if (usedSlugs.has(slug)) slug = `${slug}-${i + 1}`;
+    if (usedSlugs.has(slug)) slug = `${slug}-import`;
+    let n = 2;
+    while (usedSlugs.has(slug)) {
+      slug = `${parsed.slug}-import-${n++}`;
+    }
     usedSlugs.add(slug);
+    usedTitles.add(titleKey);
 
     const publishedAt =
       parsed.published_at ||
@@ -129,7 +160,11 @@ export const SEED_POSTS: Post[] = `;
 
   const body = JSON.stringify(posts, null, 2);
   fs.writeFileSync(OUT_FILE, header + body + ";\n", "utf8");
+  if (skipped) console.log(`\nSkipped ${skipped} duplicate title(s)`);
   console.log(`\nWrote ${posts.length} posts → ${OUT_FILE}`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

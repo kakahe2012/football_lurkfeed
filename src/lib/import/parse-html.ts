@@ -23,17 +23,33 @@ function firstMatch(html: string, re: RegExp): string | null {
   return m ? m[1] : null;
 }
 
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: " ",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  apos: "'",
+  quot: '"',
+  mdash: "—",
+  ndash: "–",
+  hellip: "…",
+  eacute: "é",
+  Eacute: "É",
+  aacute: "á",
+  iacute: "í",
+  oacute: "ó",
+  uacute: "ú",
+  ntilde: "ñ",
+  ccedil: "ç",
+};
+
 function decodeEntities(s: string): string {
   return s
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&mdash;/g, "—")
-    .replace(/&ndash;/g, "–")
-    .replace(/&hellip;/g, "…")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) =>
+      String.fromCharCode(parseInt(h, 16))
+    )
+    .replace(/&([a-z]+);/gi, (full, name) => NAMED_ENTITIES[name] ?? full)
     .trim();
 }
 
