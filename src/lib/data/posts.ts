@@ -1,6 +1,7 @@
 import type { EmotionType, Post, PublishStatus } from "@/types";
 import { SEED_POSTS } from "./seed-posts";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { resolvePostCoverForFeed } from "@/lib/media/cover-image";
 import { resolveHeroImage } from "@/lib/media/resolve-image";
 import { stripLeadingContentImage } from "@/lib/sanitize";
 import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
@@ -8,13 +9,17 @@ import { calculateHotScore, sortPostsByHot } from "@/lib/feed/hot-score";
 
 function normalizePost(row: Post): Post {
   const seed = row.slug || row.id;
+  const cover = resolvePostCoverForFeed({
+    hero_image: row.hero_image,
+    slug: seed,
+  });
   return {
     ...row,
+    hero_image: cover,
     content: stripLeadingContentImage(row.content),
-    hero_image: resolveHeroImage(row.hero_image, seed, "card"),
     og_image: row.og_image
       ? resolveHeroImage(row.og_image, `${seed}-og`, "hero")
-      : undefined,
+      : cover,
   };
 }
 

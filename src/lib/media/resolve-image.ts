@@ -61,13 +61,6 @@ export function resolveHeroImage(
   return getCultureImageUrl(seed, aspect);
 }
 
-/** Same URL the homepage FeedCard uses for cover (incl. culture fallback). */
-export function getFeedCoverImage(
-  heroImage: string | null | undefined,
-  slug: string
-): string {
-  return resolveHeroImage(heroImage, slug, "card");
-}
 
 /**
  * Fix `<img src="...">` inside article HTML — replace broken local paths up-front

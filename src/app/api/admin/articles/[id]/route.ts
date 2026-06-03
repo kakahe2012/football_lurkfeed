@@ -7,6 +7,7 @@ import {
   updateSeedPost,
   type SeedPostPatch,
 } from "@/lib/admin/seed-persist";
+import { stripLeadingContentImage } from "@/lib/sanitize";
 
 export async function GET(
   request: NextRequest,
@@ -152,7 +153,9 @@ export async function PATCH(
   const patch: SeedPostPatch = {};
   if (body.hero_image !== undefined) patch.hero_image = body.hero_image;
   if (body.og_image !== undefined) patch.og_image = body.og_image;
-  if (body.content !== undefined) patch.content = body.content;
+  if (body.content !== undefined) {
+    patch.content = stripLeadingContentImage(body.content as string);
+  }
   if (body.publish_status) patch.publish_status = body.publish_status;
 
   if (!Object.keys(patch).length) {

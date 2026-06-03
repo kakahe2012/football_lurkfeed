@@ -280,7 +280,8 @@ export function parseArticleHtml(
 
   // Body content (sanitized)
   const rawBody = extractArticleContent(html);
-  const content = stripLeadingContentImage(sanitizeHtml(rawBody));
+  const sanitized = sanitizeHtml(rawBody);
+  const content = stripLeadingContentImage(sanitized);
 
   // intro_hook precedence: lead → meta description → first 160 chars of plain text
   const intro =

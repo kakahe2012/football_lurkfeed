@@ -7,6 +7,7 @@ import { adminStyles } from "@/components/admin/admin-styles";
 import { FallbackImage } from "@/components/media/FallbackImage";
 import { adminFetch, adminUpload } from "@/lib/admin/client";
 import { extractImageSrcs, replaceImageSrcInHtml } from "@/lib/admin/article-images";
+import { resolvePostCoverForFeed } from "@/lib/media/cover-image";
 import { stripLeadingContentImage } from "@/lib/sanitize";
 import type { Post } from "@/types";
 
@@ -230,17 +231,19 @@ export default function AdminArticleEditPage() {
       )}
 
       <section className={`${adminStyles.card} mt-6`}>
-        <h2 className="text-sm font-semibold text-gray-900">封面图（Feed 显示）</h2>
+        <h2 className="text-sm font-semibold text-gray-900">封面图 hero_image</h2>
         <p className="mt-1 text-xs text-gray-500">
-          与首页 Feed 卡片同源字段 <code className="rounded bg-gray-100 px-1">hero_image</code>
-          ，保存后同步 og_image
+          与首页 Feed、文章页顶部大图同一字段；正文配图在下方单独编辑（不会重复显示封面）
         </p>
         {post && (
           <div className="mt-3 flex items-center gap-3 rounded-md border border-dashed border-gray-200 bg-gray-50 p-3">
             <span className="text-xs text-gray-500">Feed 预览</span>
             <div className="relative h-16 w-24 overflow-hidden rounded bg-gray-200">
               <FallbackImage
-                src={heroImage}
+                src={resolvePostCoverForFeed({
+                  hero_image: heroImage,
+                  slug: post.slug,
+                })}
                 fallbackSeed={post.slug}
                 aspect="card"
                 alt=""
@@ -266,7 +269,7 @@ export default function AdminArticleEditPage() {
       <section className={`${adminStyles.card} mt-6`}>
         <h2 className="text-sm font-semibold text-gray-900">正文配图</h2>
         <p className="mt-1 text-xs text-gray-500">
-          共 {originalImages.length} 张（仅替换图片地址，不改文字）
+          共 {originalImages.length} 张（仅替换地址，不改文字）
         </p>
         <div className="mt-4 space-y-4">
           {originalImages.length === 0 && (

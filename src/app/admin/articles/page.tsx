@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { adminStyles } from "@/components/admin/admin-styles";
 import { FallbackImage } from "@/components/media/FallbackImage";
+import { resolvePostCoverForFeed } from "@/lib/media/cover-image";
 import { adminFetch } from "@/lib/admin/client";
 import { buildStoryUrl, getSiteUrl } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ interface PostRow {
   id: string;
   title: string;
   slug: string;
+  content?: string;
   hero_image?: string;
   tags: string[];
   publish_status: string;
@@ -27,22 +29,24 @@ interface PostRow {
 
 /** Matches homepage FeedCard cover (resolveHeroImage + culture fallback). */
 function FeedCoverThumb({
-  heroImage,
-  slug,
+  post,
   title,
 }: {
-  heroImage?: string;
-  slug: string;
+  post: PostRow;
   title: string;
 }) {
+  const coverSrc = resolvePostCoverForFeed({
+    hero_image: post.hero_image || "",
+    slug: post.slug,
+  });
   return (
     <div
       className="relative h-12 w-20 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-100"
       title={title}
     >
       <FallbackImage
-        src={heroImage}
-        fallbackSeed={slug}
+        src={coverSrc}
+        fallbackSeed={post.slug}
         aspect="card"
         alt=""
         width={80}
@@ -130,8 +134,7 @@ export default function AdminArticlesPage() {
               <tr key={p.id} className="hover:bg-gray-50/80">
                 <td className={`${adminStyles.tableCell} p-3`}>
                   <FeedCoverThumb
-                    heroImage={p.hero_image}
-                    slug={p.slug}
+                    post={p}
                     title={p.title}
                   />
                 </td>
