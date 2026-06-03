@@ -113,19 +113,24 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 }
 
 export async function getPostsPaginated(
-  page: number,
+  offset: number,
   pageSize = 8,
   sort: FeedSort = "hot",
   options?: { discover?: boolean; viewedIds?: string[] }
-): Promise<{ posts: Post[]; hasMore: boolean }> {
+): Promise<{ posts: Post[]; hasMore: boolean; nextOffset: number }> {
   const all = await getPublishedPosts(200, sort);
   const ranked =
     options?.discover
       ? rankPostsForHomeFeed(all, options.viewedIds ?? [], "discover")
       : all;
-  const start = page * pageSize;
+  const start = Math.max(0, offset);
   const posts = ranked.slice(start, start + pageSize);
-  return { posts, hasMore: start + pageSize < ranked.length };
+  const nextOffset = start + posts.length;
+  return {
+    posts,
+    hasMore: nextOffset < ranked.length,
+    nextOffset,
+  };
 }
 
 export async function getRelatedPosts(

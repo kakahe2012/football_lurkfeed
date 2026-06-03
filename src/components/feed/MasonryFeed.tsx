@@ -13,6 +13,7 @@ import {
 } from "@/lib/feed/viewed-posts";
 
 const AD_EVERY = parseInt(process.env.NEXT_PUBLIC_FEED_AD_EVERY || "6", 10);
+const PAGE_SIZE = 8;
 
 interface MasonryFeedProps {
   initialPosts: Post[];
@@ -44,13 +45,13 @@ function buildItems(posts: Post[]): FeedItem[] {
 }
 
 function buildFeedQuery(
-  page: number,
+  offset: number,
   discover: boolean,
   viewedIds: string[],
-  limit = 8
+  limit = PAGE_SIZE
 ): string {
   const params = new URLSearchParams({
-    page: String(page),
+    offset: String(offset),
     limit: String(limit),
   });
   if (discover) {
@@ -62,15 +63,20 @@ function buildFeedQuery(
 
 export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [discoverMode, setDiscoverMode] = useState(false);
   const [showDiscoverHint, setShowDiscoverHint] = useState(false);
   const viewedIdsRef = useRef<string[]>([]);
+  const postsRef = useRef<Post[]>(initialPosts);
+  const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const siteUrl =
     typeof window !== "undefined" ? window.location.origin : getSiteUrl();
+
+  postsRef.current = posts;
+  hasMoreRef.current = hasMore;
 
   useEffect(() => {
     const viewed = getViewedPostIds();
@@ -82,12 +88,12 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
 
     if (!discover) {
       setPosts(initialPosts);
-      setPage(1);
+      postsRef.current = initialPosts;
       setHasMore(true);
+      hasMoreRef.current = true;
       return;
     }
 
-    // Return visit: fetch discover-ranked first page (unseen stories up front).
     let cancelled = false;
     (async () => {
       try {
@@ -96,18 +102,23 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
         if (cancelled) return;
         if (data.posts?.length) {
           setPosts(data.posts);
-          setPage(1);
+          postsRef.current = data.posts;
           setHasMore(data.hasMore ?? false);
+          hasMoreRef.current = data.hasMore ?? false;
         } else {
-          setPosts(rankPostsForHomeFeed(initialPosts, viewed, "discover"));
-          setPage(1);
-          setHasMore(true);
+          const ranked = rankPostsForHomeFeed(initialPosts, viewed, "discover");
+          setPosts(ranked);
+          postsRef.current = ranked;
+          setHasMore(ranked.length > PAGE_SIZE);
+          hasMoreRef.current = ranked.length > PAGE_SIZE;
         }
       } catch {
         if (!cancelled) {
-          setPosts(rankPostsForHomeFeed(initialPosts, viewed, "discover"));
-          setPage(1);
-          setHasMore(true);
+          const ranked = rankPostsForHomeFeed(initialPosts, viewed, "discover");
+          setPosts(ranked);
+          postsRef.current = ranked;
+          setHasMore(ranked.length > PAGE_SIZE);
+          hasMoreRef.current = ranked.length > PAGE_SIZE;
         }
       }
     })();
@@ -118,26 +129,37 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
   }, [initialPosts]);
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loadingRef.current || !hasMoreRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     try {
+      const offset = postsRef.current.length;
       const res = await fetch(
-        buildFeedQuery(page, discoverMode, viewedIdsRef.current)
+        buildFeedQuery(offset, discoverMode, viewedIdsRef.current)
       );
       const data = await res.json();
-      if (data.posts?.length) {
-        setPosts((prev) => {
-          const ids = new Set(prev.map((p) => p.id));
-          const fresh = data.posts.filter((p: Post) => !ids.has(p.id));
-          return [...prev, ...fresh];
-        });
-        setPage((p) => p + 1);
+      const incoming: Post[] = data.posts ?? [];
+      const ids = new Set(postsRef.current.map((p) => p.id));
+      const fresh = incoming.filter((p) => !ids.has(p.id));
+
+      if (fresh.length > 0) {
+        const next = [...postsRef.current, ...fresh];
+        postsRef.current = next;
+        setPosts(next);
       }
-      setHasMore(data.hasMore ?? false);
+
+      const more = Boolean(data.hasMore);
+      const stuck = more && fresh.length === 0;
+      setHasMore(stuck ? false : more);
+      hasMoreRef.current = stuck ? false : more;
+    } catch {
+      setHasMore(false);
+      hasMoreRef.current = false;
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [page, loading, hasMore, discoverMode]);
+  }, [discoverMode]);
 
   useEffect(() => {
     const el = sentinelRef.current;
