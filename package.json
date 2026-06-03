@@ -9,6 +9,8 @@
     "lint": "eslint",
     "import:articles": "npx --yes tsx scripts/import-articles-to-seed.ts",
     "import:markdown": "npx --yes tsx scripts/import-markdown-to-seed.ts",
+    "enrich:news": "npx --yes tsx scripts/enrich-news-articles.ts",
+    "sync:news-images": "npx --yes tsx scripts/sync-news-images.ts",
     "culture:fetch": "node scripts/fetch-culture-photos.mjs"
   },
   "dependencies": {
