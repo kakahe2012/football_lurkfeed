@@ -188,25 +188,6 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
           )}
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200/80">
-          <ShareButton
-            url={articleUrl}
-            title={post.title}
-            label="Copy link"
-            copiedLabel="Copied"
-            onShared={() => trackEvent("share", { postId: post.id })}
-          />
-          {nextPost ? (
-            <StoryLink href={`/story/${nextPost.slug}`} className={nextButtonClass}>
-              Next <ChevronRight size={16} />
-            </StoryLink>
-          ) : (
-            <Link href="/" className={nextButtonClass}>
-              More stories
-            </Link>
-          )}
-        </div>
-
         {related.length > 0 && (
           <section className="mt-12 lg:hidden">
             <h2 className="text-base font-semibold text-stone-800">You may also like</h2>
