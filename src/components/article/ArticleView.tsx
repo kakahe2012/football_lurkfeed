@@ -193,7 +193,13 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
             <h2 className="text-base font-semibold text-stone-800">You may also like</h2>
             <div className="masonry-columns mt-4">
               {related.slice(0, 4).map((r, i) => (
-                <FeedCard key={r.id} post={r} variant={i === 0 ? "featured" : "card"} siteUrl={origin} />
+                <FeedCard
+                  key={r.id}
+                  post={r}
+                  variant={i === 0 ? "featured" : "card"}
+                  siteUrl={origin}
+                  showLikeButton={false}
+                />
               ))}
             </div>
           </section>
