@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import {
+  DEFAULT_FEED_LAYOUT_KEY,
+  DEFAULT_FEED_SLOT,
+  resolveAdsenseClient,
+} from "@/lib/ads/adsense-config";
 import { cn } from "@/lib/utils";
 
 interface FeedAdCardProps {
@@ -10,9 +15,14 @@ interface FeedAdCardProps {
 
 /** 瀑布流中的原生广告卡片 */
 export function FeedAdCard({ slotId, className }: FeedAdCardProps) {
-  const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+  const client = resolveAdsenseClient();
   const adRef = useRef<HTMLModElement>(null);
-  const resolvedSlot = slotId || process.env.NEXT_PUBLIC_ADSENSE_SLOT_FEED;
+  const resolvedSlot =
+    slotId ||
+    process.env.NEXT_PUBLIC_ADSENSE_SLOT_FEED ||
+    DEFAULT_FEED_SLOT;
+  const layoutKey =
+    process.env.NEXT_PUBLIC_ADSENSE_LAYOUT_KEY_FEED || DEFAULT_FEED_LAYOUT_KEY;
 
   useEffect(() => {
     if (!client || !resolvedSlot || !adRef.current) return;
@@ -42,7 +52,7 @@ export function FeedAdCard({ slotId, className }: FeedAdCardProps) {
           data-ad-client={client}
           data-ad-slot={resolvedSlot}
           data-ad-format="fluid"
-          data-ad-layout-key="-fb+5w+4e-db+86"
+          data-ad-layout-key={layoutKey}
           data-full-width-responsive="true"
         />
       </article>

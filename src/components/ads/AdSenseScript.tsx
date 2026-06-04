@@ -1,8 +1,8 @@
 import Script from "next/script";
+import { resolveAdsenseClient } from "@/lib/ads/adsense-config";
 
 export function AdSenseScript() {
-  const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
-  if (!clientId) return null;
+  const clientId = resolveAdsenseClient();
 
   return (
     <Script

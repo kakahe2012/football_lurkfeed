@@ -150,7 +150,7 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
   );
 
   return (
-    <article className="min-h-screen pb-28">
+    <article className="min-h-screen pb-40">
       <div className="relative pt-4">
         {isVideo ? (
           <VideoEmbed url={post.video_url} title={post.title} />
@@ -239,6 +239,8 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
           </StoryLink>
         )}
       </div>
+
+      <AdSlot placement="sticky" className="bottom-[4.25rem] z-40" />
 
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-2">

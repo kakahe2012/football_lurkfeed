@@ -20,8 +20,15 @@
 
    配置环境变量即可：
    ```env
-   NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-xxxxxxxxxxxxxxxx
+   NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-8307718514196180
+   NEXT_PUBLIC_ADSENSE_SLOT_FEED=8946548739
+   NEXT_PUBLIC_ADSENSE_LAYOUT_KEY_FEED=-6t+ed+2i-1n-4w
+   NEXT_PUBLIC_ADSENSE_SLOT_INLINE=1877057591
+   NEXT_PUBLIC_ADSENSE_SLOT_STICKY=5394316539
+   NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=8862788253
    ```
+
+   代码里已内置 Feed、文中、底部、侧栏（360×800）四个单元为默认值；在 Vercel 配置同名变量并 **Redeploy** 后生产环境也会加载。
 
 7. 等待审核（通常 1–14 天，世界杯前建议提前 4 周申请）
 

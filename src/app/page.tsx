@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { MasonryFeed } from "@/components/feed/MasonryFeed";
 import { getPublishedPosts, getTrendingPostsRecent } from "@/lib/data/posts";
 import {
@@ -67,7 +68,7 @@ export default async function HomePage() {
   const breadcrumb = buildBreadcrumbSchema([{ name: "Home", url: `${base}/` }]);
 
   return (
-    <main className="min-h-screen bg-[#FAF8F5]">
+    <main className="min-h-screen bg-[#FAF8F5] pb-24 lg:pb-0">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
@@ -88,6 +89,7 @@ export default async function HomePage() {
         </section>
         <MasonryFeed initialPosts={posts} />
       </ContentLayout>
+      <AdSlot placement="sticky" />
     </main>
   );
 }
