@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import {
   DEFAULT_INLINE_SLOT,
   DEFAULT_STICKY_SLOT,
+  isStickyBottomAdEnabled,
   resolveAdsenseClient,
 } from "@/lib/ads/adsense-config";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,10 @@ interface AdSlotProps {
 }
 
 export function AdSlot({ placement, className }: AdSlotProps) {
+  if (placement === "sticky" && !isStickyBottomAdEnabled()) {
+    return null;
+  }
+
   const client = resolveAdsenseClient();
   const slot =
     placement === "inline"

@@ -68,7 +68,7 @@ export default async function HomePage() {
   const breadcrumb = buildBreadcrumbSchema([{ name: "Home", url: `${base}/` }]);
 
   return (
-    <main className="min-h-screen bg-[#FAF8F5] pb-24 lg:pb-0">
+    <main className="min-h-screen bg-[#FAF8F5]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}

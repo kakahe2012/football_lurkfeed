@@ -150,7 +150,7 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
   );
 
   return (
-    <article className="min-h-screen pb-40">
+    <article className="min-h-screen pb-28">
       <div className="relative pt-4">
         {isVideo ? (
           <VideoEmbed url={post.video_url} title={post.title} />

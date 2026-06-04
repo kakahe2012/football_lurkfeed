@@ -1,5 +1,8 @@
 /** Defaults from AdSense ad units (override via NEXT_PUBLIC_* in Vercel). */
 
+/** Homepage + article mobile bottom banner — set false to hide temporarily. */
+export const SHOW_STICKY_BOTTOM_AD = false;
+
 export const DEFAULT_ADSENSE_CLIENT = "ca-pub-8307718514196180";
 
 /** Fluid in-feed — homepage masonry */
@@ -19,4 +22,11 @@ export const SIDEBAR_AD_HEIGHT = 800;
 
 export function resolveAdsenseClient(): string {
   return process.env.NEXT_PUBLIC_ADSENSE_CLIENT || DEFAULT_ADSENSE_CLIENT;
+}
+
+/** Sticky bottom ad (home + story). Re-enable: SHOW_STICKY_BOTTOM_AD=true or env. */
+export function isStickyBottomAdEnabled(): boolean {
+  if (process.env.NEXT_PUBLIC_ADSENSE_STICKY_ENABLED === "true") return true;
+  if (process.env.NEXT_PUBLIC_ADSENSE_STICKY_ENABLED === "false") return false;
+  return SHOW_STICKY_BOTTOM_AD;
 }
