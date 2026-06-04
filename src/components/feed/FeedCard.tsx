@@ -17,6 +17,8 @@ interface FeedCardProps {
   post: Post;
   variant: FeedCardVariant;
   siteUrl?: string;
+  /** Homepage feed hides likes; article related cards may still show them. */
+  showLikeButton?: boolean;
 }
 
 function PlayOverlay({ large = false }: { large?: boolean }) {
@@ -41,7 +43,12 @@ function VideoBadge() {
   );
 }
 
-export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
+export function FeedCard({
+  post,
+  variant,
+  siteUrl = "",
+  showLikeButton = true,
+}: FeedCardProps) {
   const emotion = EMOTION_LABELS[post.emotion_type];
   const shareUrl = buildStoryUrl(
     post.slug,
@@ -50,6 +57,17 @@ export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
   );
   const likeCount = formatLikeCount(calculateWeightedLikes(post));
   const isVideo = isVideoPost(post);
+
+  const likeButton = showLikeButton ? (
+    <button
+      type="button"
+      className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 shadow-sm"
+      aria-label={`${likeCount} likes`}
+    >
+      <Heart size={14} className="fill-rose-100" />
+      {likeCount}
+    </button>
+  ) : null;
 
   if (variant === "featured") {
     return (
@@ -89,14 +107,7 @@ export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
         <div className="flex items-center justify-between border-t border-stone-100 px-4 py-3">
           <span className="text-xs text-stone-400">{formatReadTime(post.read_time_minutes)}</span>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 shadow-sm"
-              aria-label={`${likeCount} likes`}
-            >
-              <Heart size={14} className="fill-rose-100" />
-              {likeCount}
-            </button>
+            {likeButton}
             <ShareButton url={shareUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" />
           </div>
         </div>
@@ -130,14 +141,7 @@ export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
             Read →
           </StoryLink>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 shadow-sm"
-              aria-label={`${likeCount} likes`}
-            >
-              <Heart size={14} className="fill-rose-100" />
-              {likeCount}
-            </button>
+            {likeButton}
             <ShareButton url={shareUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" />
           </div>
         </div>
@@ -166,14 +170,7 @@ export function FeedCard({ post, variant, siteUrl = "" }: FeedCardProps) {
         </div>
       </StoryLink>
       <div className="flex justify-end gap-2 border-t border-stone-50 px-3 py-2">
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 shadow-sm"
-          aria-label={`${likeCount} likes`}
-        >
-          <Heart size={14} className="fill-rose-100" />
-          {likeCount}
-        </button>
+        {likeButton}
         <ShareButton url={shareUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" />
       </div>
     </article>

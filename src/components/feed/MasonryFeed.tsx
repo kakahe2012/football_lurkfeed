@@ -259,6 +259,7 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
               post={item.post}
               variant={item.variant}
               siteUrl={siteUrl}
+              showLikeButton={false}
             />
           )
         )}

@@ -125,8 +125,8 @@ export async function getPublishedCatalog(
 }
 
 /**
- * Default homepage feed. `sort = "hot"` blends recency with engagement so
- * fresh popular stories rise; `sort = "newest"` is pure publish time.
+ * Default homepage feed. `sort = "hot"` blends engagement with strong recency
+ * (see hot-score freshness boost); `sort = "newest"` is pure publish time.
  */
 export async function getPublishedPosts(
   limit = 50,
