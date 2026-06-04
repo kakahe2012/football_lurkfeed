@@ -1,5 +1,8 @@
 /** Build KC v3-style HTML blocks for SEO / GEO extraction. */
 
+/** Rewritten articles: hide source attribution in UI until we need it again. */
+export const SHOW_SOURCE_NOTE = false;
+
 export function buildTakeaways(items: string[]): string {
   const lis = items.map((t) => `<li>${t}</li>`).join("\n");
   return `<div class="takeaways">\n<h3>Key Takeaways</h3>\n<ul>\n${lis}\n</ul>\n</div>`;
@@ -44,7 +47,7 @@ export function assembleKcContent(parts: {
   lead: string;
   bodyInner: string;
   faqs: { question: string; answer: string }[];
-  sourceNote: string;
+  sourceNote?: string;
 }): string {
   const chunks: string[] = [];
   if (parts.disclaimer) chunks.push(buildDisclaimer(parts.disclaimer));
@@ -52,6 +55,8 @@ export function assembleKcContent(parts: {
   chunks.push(`<p class="article-lead">${parts.lead}</p>`);
   chunks.push(wrapArticleBody(parts.bodyInner));
   chunks.push(buildFaqSection(parts.faqs));
-  chunks.push(buildSourceNote(parts.sourceNote));
+  if (SHOW_SOURCE_NOTE && parts.sourceNote?.trim()) {
+    chunks.push(buildSourceNote(parts.sourceNote));
+  }
   return chunks.join("\n\n");
 }

@@ -3,10 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { StoryLink } from "@/components/navigation/StoryLink";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { Post } from "@/types";
 import { EMOTION_LABELS } from "@/types";
-import { formatReadTime, slugify, buildStoryUrl, getSiteUrl } from "@/lib/utils";
+import {
+  cn,
+  formatReadTime,
+  slugify,
+  buildStoryUrl,
+  getSiteUrl,
+} from "@/lib/utils";
 import { ShareButton } from "@/components/ui/ShareButton";
 import { FeedCard } from "@/components/feed/FeedCard";
 import { TagChips } from "@/components/tags/TagChips";
@@ -134,34 +140,17 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
     });
   }, [post.slug, contentWithAnchors]);
 
+  const nextButtonClass = cn(
+    "inline-flex items-center rounded-full border border-stone-200 bg-white font-medium text-stone-700 shadow-sm transition hover:border-stone-300 hover:bg-stone-50 active:scale-[0.98]",
+    "gap-1.5 px-4 py-2 text-sm"
+  );
+  const nextButtonClassSm = cn(
+    nextButtonClass,
+    "gap-1 px-2.5 py-1.5 text-xs flex-1 justify-center"
+  );
+
   return (
     <article className="min-h-screen pb-28">
-      {/*
-        Sticky article toolbar.
-        - Lives inline with the article (scrolls with content as the user reads).
-        - Sticks at top-14 (56px) — i.e. directly below the always-pinned
-          HeaderBar. The TagBar in SiteHeader is intentionally NOT sticky, so it
-          scrolls away naturally and this toolbar takes its place flush against
-          the header. The previous top-[6.5rem] left a 48px gap once TagBar
-          scrolled out of view.
-        - z-30 so it sits below HeaderBar (z-50) but above article body.
-      */}
-      <div className="sticky top-14 z-30 border-b border-stone-200/80 bg-[#FAF8F5]/95 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-2 py-2">
-          <Link href="/" className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-sm text-stone-600 hover:bg-stone-100">
-            <ArrowLeft size={16} /> Back
-          </Link>
-          <div className="flex items-center gap-2">
-            <ShareButton url={articleUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" onShared={() => trackEvent("share", { postId: post.id })} />
-            {nextPost && (
-              <StoryLink href={`/story/${nextPost.slug}`} className="inline-flex items-center gap-0.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50">
-                Next <ChevronRight size={16} />
-              </StoryLink>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="relative pt-4">
         {isVideo ? (
           <VideoEmbed url={post.video_url} title={post.title} />
@@ -200,10 +189,22 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
         </div>
 
         <div className="mt-10 flex flex-wrap gap-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200/80">
-          <ShareButton url={articleUrl} title={post.title} label="Copy link" copiedLabel="Copied" onShared={() => trackEvent("share", { postId: post.id })} />
-          <Link href="/" className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100">
-            More stories
-          </Link>
+          <ShareButton
+            url={articleUrl}
+            title={post.title}
+            label="Copy link"
+            copiedLabel="Copied"
+            onShared={() => trackEvent("share", { postId: post.id })}
+          />
+          {nextPost ? (
+            <StoryLink href={`/story/${nextPost.slug}`} className={nextButtonClass}>
+              Next <ChevronRight size={16} />
+            </StoryLink>
+          ) : (
+            <Link href="/" className={nextButtonClass}>
+              More stories
+            </Link>
+          )}
         </div>
 
         {related.length > 0 && (
@@ -243,11 +244,11 @@ export function ArticleView({ post, related, nextPost }: ArticleViewProps) {
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-2">
           <ShareButton url={articleUrl} title={post.title} label="Copy link" copiedLabel="Copied" size="sm" className="flex-1 justify-center" />
           {nextPost ? (
-            <StoryLink href={`/story/${nextPost.slug}`} className="flex flex-1 items-center justify-center gap-1 rounded-full bg-teal-700 px-4 py-2 text-sm font-medium text-white">
-              Next <ChevronRight size={16} />
+            <StoryLink href={`/story/${nextPost.slug}`} className={nextButtonClassSm}>
+              Next <ChevronRight size={14} />
             </StoryLink>
           ) : (
-            <Link href="/" className="flex flex-1 items-center justify-center rounded-full bg-stone-800 px-4 py-2 text-sm font-medium text-white">
+            <Link href="/" className={nextButtonClassSm}>
               Home
             </Link>
           )}

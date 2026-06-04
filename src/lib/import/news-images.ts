@@ -6,6 +6,9 @@ export const NEWS_ARTICLE_PREFIX_TO_SLUG: Record<string, string> = {
   "003": "most-valuable-world-cup-players",
   "004": "world-cup-winning-probability",
   "005": "fox-top-100-world-cup-players",
+  "006": "spain-billion-euro-squad-world-cup",
+  "007": "england-world-cup-wealth-list",
+  "008": "who-wins-world-cup-predictions",
 };
 
 export function newsImageUrl(slug: string, filename: string): string {

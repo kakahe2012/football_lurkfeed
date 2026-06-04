@@ -339,15 +339,11 @@ body {
 }
 
 /* ============================================================
- * Source note
+ * Source note (hidden while articles are rewritten — see SHOW_SOURCE_NOTE)
  * ============================================================ */
-.prose-article .source-note {
-  font-size: 0.78rem;
-  color: #9b9b9b;
-  font-style: italic;
-  margin-top: 1.75rem;
-  padding-top: 1rem;
-  border-top: 1px dashed #ece8e0;
+.prose-article .source-note,
+.prose-article p.source-note {
+  display: none;
 }
 
 /* Hide imported in-article tag chips & external CTA — we render our own */
