@@ -98,17 +98,35 @@ function useColumnCount(): number {
   );
 }
 
-/** Distribute items round-robin to columns. Stable: a given item index always
- * lands in the same column for a given columnCount, so appending more items
- * never reflows existing cards. */
-function distributeIntoColumns(
+/** Estimated card heights for shortest-column placement (px). */
+function estimateItemHeight(item: FeedItem): number {
+  const GAP = 12;
+  if (item.type === "ad") return 260 + GAP;
+  switch (item.variant) {
+    case "featured":
+      return 460 + GAP;
+    case "snippet":
+      return 200 + GAP;
+    default:
+      return 300 + GAP;
+  }
+}
+
+/** Place each item on the currently shortest column. Deterministic for a given
+ * item prefix — appending posts never changes earlier cards' columns. */
+function distributeShortestColumn(
   items: FeedItem[],
   columnCount: number
 ): FeedItem[][] {
   const cols: FeedItem[][] = Array.from({ length: columnCount }, () => []);
-  items.forEach((item, i) => {
-    cols[i % columnCount].push(item);
-  });
+  const heights = Array<number>(columnCount).fill(0);
+
+  for (const item of items) {
+    const col = heights.indexOf(Math.min(...heights));
+    cols[col].push(item);
+    heights[col] += estimateItemHeight(item);
+  }
+
   return cols;
 }
 
@@ -222,7 +240,7 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
 
   const items = useMemo(() => buildItems(posts), [posts]);
   const columns = useMemo(
-    () => distributeIntoColumns(items, columnCount),
+    () => distributeShortestColumn(items, columnCount),
     [items, columnCount]
   );
 
