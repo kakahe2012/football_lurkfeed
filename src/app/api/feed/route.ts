@@ -4,7 +4,6 @@ import {
   getSeedCatalog,
   type FeedSort,
 } from "@/lib/data/posts";
-import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,13 +22,7 @@ export async function GET(request: NextRequest) {
       : pageParam != null
         ? parseInt(pageParam, 10) * pageSize
         : 0;
-  const sortParam = request.nextUrl.searchParams.get("sort") as FeedSort | null;
-  const sort: FeedSort = sortParam === "newest" ? "newest" : "hot";
-  const discover = request.nextUrl.searchParams.get("discover") === "1";
-  const seenRaw = request.nextUrl.searchParams.get("seen") || "";
-  const viewedIds = seenRaw
-    ? seenRaw.split(",").map((s) => s.trim()).filter(Boolean)
-    : [];
+  const sort: FeedSort = "newest";
 
   const safeOffset = Number.isFinite(offset) ? offset : 0;
   const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 8;
@@ -38,8 +31,7 @@ export async function GET(request: NextRequest) {
     const { posts, hasMore, nextOffset, total } = await getPostsPaginated(
       safeOffset,
       safePageSize,
-      sort,
-      { discover, viewedIds }
+      sort
     );
     return NextResponse.json(
       { posts, hasMore, nextOffset, total },
@@ -51,9 +43,7 @@ export async function GET(request: NextRequest) {
     // serve a paginated slice from the bundled seed catalog so users can
     // keep scrolling.
     console.error("[/api/feed] fatal, falling back to seed:", err);
-    const all = discover
-      ? rankPostsForHomeFeed(getSeedCatalog(sort), viewedIds, "discover")
-      : getSeedCatalog(sort);
+    const all = getSeedCatalog(sort);
     const start = Math.max(0, safeOffset);
     const slice = all.slice(start, start + safePageSize);
     const nextOffset = start + slice.length;

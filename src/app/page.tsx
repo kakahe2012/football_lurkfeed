@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const [posts, trending] = await Promise.all([
-    getPublishedPosts(12),
+    getPublishedPosts(12, "newest"),
     getTrendingPostsRecent(3, 10),
   ]);
 

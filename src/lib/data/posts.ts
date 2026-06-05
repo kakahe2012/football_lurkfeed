@@ -4,7 +4,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolvePostCoverForFeed } from "@/lib/media/cover-image";
 import { resolveHeroImage } from "@/lib/media/resolve-image";
 import { stripLeadingContentImage } from "@/lib/sanitize";
-import { rankPostsForHomeFeed } from "@/lib/feed/rank-feed";
 import { calculateHotScore, sortPostsByHot } from "@/lib/feed/hot-score";
 
 function normalizePost(row: Post): Post {
@@ -125,12 +124,11 @@ export async function getPublishedCatalog(
 }
 
 /**
- * Default homepage feed. `sort = "hot"` blends engagement with strong recency
- * (see hot-score freshness boost); `sort = "newest"` is pure publish time.
+ * Default homepage feed — sorted by published_at descending (newest first).
  */
 export async function getPublishedPosts(
   limit = 50,
-  sort: FeedSort = "hot"
+  sort: FeedSort = "newest"
 ): Promise<Post[]> {
   const ranked = await getPublishedCatalog(sort);
   return ranked.slice(0, limit);
@@ -157,8 +155,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 export async function getPostsPaginated(
   offset: number,
   pageSize = 8,
-  sort: FeedSort = "hot",
-  options?: { discover?: boolean; viewedIds?: string[] }
+  sort: FeedSort = "newest"
 ): Promise<{
   posts: Post[];
   hasMore: boolean;
@@ -172,18 +169,14 @@ export async function getPostsPaginated(
     console.error("[getPostsPaginated] catalog failed, using seed:", err);
     all = getSeedCatalog(sort);
   }
-  const ranked =
-    options?.discover
-      ? rankPostsForHomeFeed(all, options.viewedIds ?? [], "discover")
-      : all;
   const start = Math.max(0, offset);
-  const posts = ranked.slice(start, start + pageSize);
+  const posts = all.slice(start, start + pageSize);
   const nextOffset = start + posts.length;
   return {
     posts,
-    hasMore: nextOffset < ranked.length,
+    hasMore: nextOffset < all.length,
     nextOffset,
-    total: ranked.length,
+    total: all.length,
   };
 }
 
