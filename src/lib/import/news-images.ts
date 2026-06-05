@@ -11,6 +11,9 @@ export const NEWS_ARTICLE_PREFIX_TO_SLUG: Record<string, string> = {
   "008": "who-wins-world-cup-predictions",
   "009": "england-baked-beans-secret-weapon",
   "010": "england-100m-luxury-world-cup-hotel",
+  "011": "top-10-most-valuable-world-cup-players",
+  "012": "seven-rising-stars-world-cup",
+  "013": "goldman-sachs-opta-spain-wins-prediction",
 };
 
 export function newsImageUrl(slug: string, filename: string): string {
