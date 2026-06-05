@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { Post } from "@/types";
 import { FeedCard, type FeedCardVariant } from "./FeedCard";
 import { FeedAdCard } from "@/components/ads/FeedAdCard";
@@ -8,13 +15,14 @@ import { getSiteUrl } from "@/lib/utils";
 
 const AD_EVERY = 9;
 const PAGE_SIZE = 8;
+const SSR_COLUMN_COUNT = 2;
 
 interface MasonryFeedProps {
   initialPosts: Post[];
 }
 
 type FeedItem =
-  | { type: "post"; post: Post; variant: FeedCardVariant }
+  | { type: "post"; key: string; post: Post; variant: FeedCardVariant }
   | { type: "ad"; key: string };
 
 type FeedApiResponse = {
@@ -30,19 +38,78 @@ function getVariant(index: number, post: Post): FeedCardVariant {
   return "card";
 }
 
+/** Build a flat list with one ad after every AD_EVERY posts.
+ * Item indices are stable across pagination so column assignment never shifts. */
 function buildItems(posts: Post[]): FeedItem[] {
   const items: FeedItem[] = [];
   let postIndex = 0;
+  let adIndex = 0;
 
-  posts.forEach((post) => {
-    items.push({ type: "post", post, variant: getVariant(postIndex, post) });
+  for (const post of posts) {
+    items.push({
+      type: "post",
+      key: `post-${post.id}`,
+      post,
+      variant: getVariant(postIndex, post),
+    });
     postIndex++;
-    if (postIndex > 0 && postIndex % AD_EVERY === 0) {
-      items.push({ type: "ad", key: `ad-${postIndex}` });
+    if (postIndex % AD_EVERY === 0) {
+      items.push({ type: "ad", key: `ad-${adIndex}` });
+      adIndex++;
     }
-  });
+  }
 
   return items;
+}
+
+/** Detect column count via matchMedia. Returns SSR_COLUMN_COUNT during SSR
+ * and updates on the client without causing re-distribution during scroll. */
+function readColumnCount(): number {
+  if (typeof window === "undefined" || !window.matchMedia) {
+    return SSR_COLUMN_COUNT;
+  }
+  // Desktop with sidebar: xl 1280+ → 3, lg 1024-1279 → 2
+  // Tablet (no sidebar): md 768-1023 → 3
+  // Mobile / small: < 768 → 2
+  if (window.matchMedia("(min-width: 1280px)").matches) return 3;
+  if (window.matchMedia("(min-width: 1024px)").matches) return 2;
+  if (window.matchMedia("(min-width: 768px)").matches) return 3;
+  return 2;
+}
+
+function subscribeColumnCount(notify: () => void): () => void {
+  if (typeof window === "undefined" || !window.matchMedia) return () => {};
+  const queries = [
+    window.matchMedia("(min-width: 1280px)"),
+    window.matchMedia("(min-width: 1024px)"),
+    window.matchMedia("(min-width: 768px)"),
+  ];
+  queries.forEach((q) => q.addEventListener("change", notify));
+  return () => {
+    queries.forEach((q) => q.removeEventListener("change", notify));
+  };
+}
+
+function useColumnCount(): number {
+  return useSyncExternalStore(
+    subscribeColumnCount,
+    readColumnCount,
+    () => SSR_COLUMN_COUNT
+  );
+}
+
+/** Distribute items round-robin to columns. Stable: a given item index always
+ * lands in the same column for a given columnCount, so appending more items
+ * never reflows existing cards. */
+function distributeIntoColumns(
+  items: FeedItem[],
+  columnCount: number
+): FeedItem[][] {
+  const cols: FeedItem[][] = Array.from({ length: columnCount }, () => []);
+  items.forEach((item, i) => {
+    cols[i % columnCount].push(item);
+  });
+  return cols;
 }
 
 export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
@@ -54,22 +121,20 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const consecutiveErrorsRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadMoreRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const columnCount = useColumnCount();
   const siteUrl =
     typeof window !== "undefined" ? window.location.origin : getSiteUrl();
 
-  postsRef.current = posts;
-  hasMoreRef.current = hasMore;
+  useEffect(() => {
+    postsRef.current = posts;
+  }, [posts]);
 
   useEffect(() => {
-    setPosts(initialPosts);
-    postsRef.current = initialPosts;
-    feedOffsetRef.current = initialPosts.length;
-    setHasMore(true);
-    hasMoreRef.current = true;
-  }, [initialPosts]);
-
-  const consecutiveErrorsRef = useRef(0);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    hasMoreRef.current = hasMore;
+  }, [hasMore]);
 
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMoreRef.current) return;
@@ -123,7 +188,7 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
         if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
         retryTimerRef.current = setTimeout(() => {
           retryTimerRef.current = null;
-          loadMore();
+          void loadMoreRef.current();
         }, delay);
       }
     } finally {
@@ -131,6 +196,10 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+  }, [loadMore]);
 
   useEffect(() => {
     return () => {
@@ -151,24 +220,35 @@ export function MasonryFeed({ initialPosts }: MasonryFeedProps) {
     return () => obs.disconnect();
   }, [loadMore]);
 
-  const items = buildItems(posts);
+  const items = useMemo(() => buildItems(posts), [posts]);
+  const columns = useMemo(
+    () => distributeIntoColumns(items, columnCount),
+    [items, columnCount]
+  );
 
   return (
     <div className="pb-20">
-      <div className="masonry-columns">
-        {items.map((item) =>
-          item.type === "ad" ? (
-            <FeedAdCard key={item.key} />
-          ) : (
-            <FeedCard
-              key={item.post.id}
-              post={item.post}
-              variant={item.variant}
-              siteUrl={siteUrl}
-              showLikeButton={false}
-            />
-          )
-        )}
+      <div
+        className="feed-grid"
+        style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
+      >
+        {columns.map((col, ci) => (
+          <div key={`col-${ci}`} className="feed-column">
+            {col.map((item) =>
+              item.type === "ad" ? (
+                <FeedAdCard key={item.key} />
+              ) : (
+                <FeedCard
+                  key={item.key}
+                  post={item.post}
+                  variant={item.variant}
+                  siteUrl={siteUrl}
+                  showLikeButton={false}
+                />
+              )
+            )}
+          </div>
+        ))}
       </div>
       <div ref={sentinelRef} className="flex flex-col items-center gap-2 py-10">
         {loading && (

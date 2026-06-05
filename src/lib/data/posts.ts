@@ -64,11 +64,15 @@ export type FeedSort = "hot" | "newest";
 const FEED_CATALOG_LIMIT = 500;
 
 function sortByNewest(posts: Post[]): Post[] {
-  return [...posts].sort(
-    (a, b) =>
-      new Date(b.published_at || b.created_at).getTime() -
-      new Date(a.published_at || a.created_at).getTime()
-  );
+  return [...posts].sort((a, b) => {
+    const tb = new Date(b.published_at || b.created_at).getTime();
+    const ta = new Date(a.published_at || a.created_at).getTime();
+    if (tb !== ta) return tb - ta;
+    const ib = parseInt(b.id, 10);
+    const ia = parseInt(a.id, 10);
+    if (Number.isFinite(ib) && Number.isFinite(ia) && ib !== ia) return ib - ia;
+    return b.id.localeCompare(a.id);
+  });
 }
 
 /**

@@ -32,7 +32,71 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 瀑布流：双列手机，三列平板+ */
+/* JS-distributed feed columns: items are pre-assigned to a fixed column
+ * by index (round-robin), so appending new items on scroll never shuffles
+ * the cards already in view. Each column is an independent flex column. */
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (min-width: 640px) {
+  .feed-grid {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .feed-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* When sidebar is present (lg+), main column is narrower → keep 2 cols at lg,
+ * 3 cols at xl. The .content-main scope overrides the global breakpoints. */
+@media (min-width: 1024px) {
+  .content-main .feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .content-main .feed-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.125rem;
+  }
+}
+
+.feed-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .feed-column {
+    gap: 1rem;
+  }
+}
+
+.feed-column > * {
+  width: 100%;
+}
+
+/* When .masonry-item cards are rendered inside a JS feed column, neutralize
+ * the legacy column-mode styles so flex gap controls spacing cleanly. */
+.feed-column .masonry-item {
+  display: block;
+  margin-bottom: 0;
+}
+
+/* Legacy CSS-column masonry — used by static lists (article "You may also
+ * like") where there is no infinite scroll, so column reflow is harmless. */
 .masonry-columns {
   column-count: 2;
   column-gap: 0.75rem;
@@ -52,7 +116,6 @@ body {
   }
 }
 
-/* 桌面侧栏出现时主栏更宽：lg 两列更易读，xl 三列 */
 @media (min-width: 1024px) {
   .content-main .masonry-columns {
     column-count: 2;
