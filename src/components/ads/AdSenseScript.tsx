@@ -1,3 +1,5 @@
+"use client";
+
 import Script from "next/script";
 import { resolveAdsenseClient } from "@/lib/ads/adsense-config";
 import { markAdsenseScriptReady } from "@/lib/ads/load-adsense-slot";
