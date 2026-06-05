@@ -14,6 +14,11 @@ export const NEWS_ARTICLE_PREFIX_TO_SLUG: Record<string, string> = {
   "011": "top-10-most-valuable-world-cup-players",
   "012": "seven-rising-stars-world-cup",
   "013": "goldman-sachs-opta-spain-wins-prediction",
+  "014": "bbc-top-10-world-cup-jerseys",
+  "015": "messi-ronaldo-world-cup-scoreboard",
+  "016": "mbappe-girlfriend-drama-petition-world-cup",
+  "017": "france-16-billion-squad-world-cup-preview",
+  "018": "neymar-calf-injury-last-world-cup",
 };
 
 export function newsImageUrl(slug: string, filename: string): string {
