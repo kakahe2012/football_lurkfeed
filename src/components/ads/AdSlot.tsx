@@ -7,6 +7,11 @@ import {
   isStickyBottomAdEnabled,
   resolveAdsenseClient,
 } from "@/lib/ads/adsense-config";
+import {
+  isAdsenseTestMode,
+  pushAdsenseSlot,
+  pushAdsenseSlotWhenVisible,
+} from "@/lib/ads/load-adsense-slot";
 import { cn } from "@/lib/utils";
 
 type Placement = "inline" | "sticky";
@@ -17,26 +22,30 @@ interface AdSlotProps {
 }
 
 export function AdSlot({ placement, className }: AdSlotProps) {
-  if (placement === "sticky" && !isStickyBottomAdEnabled()) {
-    return null;
-  }
-
   const client = resolveAdsenseClient();
   const slot =
     placement === "inline"
       ? process.env.NEXT_PUBLIC_ADSENSE_SLOT_INLINE || DEFAULT_INLINE_SLOT
       : process.env.NEXT_PUBLIC_ADSENSE_SLOT_STICKY || DEFAULT_STICKY_SLOT;
   const adRef = useRef<HTMLModElement>(null);
+  const testMode = isAdsenseTestMode();
+  const enabled =
+    placement !== "sticky" || isStickyBottomAdEnabled();
 
   useEffect(() => {
-    if (!slot) return;
-    try {
-      ((window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle =
-        (window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle || []).push({});
-    } catch {
-      /* ignore */
+    if (!enabled || !client || !slot) return;
+    const el = adRef.current;
+    if (!el) return;
+
+    if (placement === "inline") {
+      return pushAdsenseSlotWhenVisible(el, { rootMargin: "200px" });
     }
-  }, [client, slot]);
+    pushAdsenseSlot(el);
+  }, [enabled, client, slot, placement]);
+
+  if (!enabled) {
+    return null;
+  }
 
   if (placement === "sticky") {
     return (
@@ -54,6 +63,7 @@ export function AdSlot({ placement, className }: AdSlotProps) {
           data-ad-slot={slot}
           data-ad-format="auto"
           data-full-width-responsive="true"
+          {...(testMode ? { "data-adtest": "on" } : {})}
         />
       </div>
     );
@@ -70,13 +80,19 @@ export function AdSlot({ placement, className }: AdSlotProps) {
           data-ad-slot={slot}
           data-ad-layout="in-article"
           data-ad-format="fluid"
+          {...(testMode ? { "data-adtest": "on" } : {})}
         />
       </div>
     );
   }
 
   return (
-    <div className={cn("rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center text-xs text-stone-400", className)}>
+    <div
+      className={cn(
+        "rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center text-xs text-stone-400",
+        className
+      )}
+    >
       In-article ad · configure NEXT_PUBLIC_ADSENSE_SLOT_INLINE
     </div>
   );

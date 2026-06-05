@@ -7,6 +7,10 @@ import {
   SIDEBAR_AD_WIDTH,
   SIDEBAR_AD_HEIGHT,
 } from "@/lib/ads/adsense-config";
+import {
+  isAdsenseTestMode,
+  pushAdsenseSlotWhenVisible,
+} from "@/lib/ads/load-adsense-slot";
 
 /** Trending 侧栏下方的固定尺寸展示广告（360×800） */
 export function SidebarAd() {
@@ -14,15 +18,13 @@ export function SidebarAd() {
   const slot =
     process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR || DEFAULT_SIDEBAR_SLOT;
   const adRef = useRef<HTMLModElement>(null);
+  const testMode = isAdsenseTestMode();
 
   useEffect(() => {
-    if (!slot) return;
-    try {
-      ((window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle =
-        (window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle || []).push({});
-    } catch {
-      /* ignore */
-    }
+    if (!client || !slot) return;
+    const el = adRef.current;
+    if (!el) return;
+    return pushAdsenseSlotWhenVisible(el, { rootMargin: "200px" });
   }, [client, slot]);
 
   return (
@@ -44,6 +46,7 @@ export function SidebarAd() {
           }}
           data-ad-client={client}
           data-ad-slot={slot}
+          {...(testMode ? { "data-adtest": "on" } : {})}
         />
       </div>
     </div>
