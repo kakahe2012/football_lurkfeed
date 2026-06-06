@@ -19,6 +19,7 @@ export const NEWS_ARTICLE_PREFIX_TO_SLUG: Record<string, string> = {
   "016": "mbappe-girlfriend-drama-petition-world-cup",
   "017": "france-16-billion-squad-world-cup-preview",
   "018": "neymar-calf-injury-last-world-cup",
+  "019": "mbappe-real-madrid-greatest-messi-ronaldo",
 };
 
 export function newsImageUrl(slug: string, filename: string): string {

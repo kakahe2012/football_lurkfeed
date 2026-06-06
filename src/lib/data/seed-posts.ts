@@ -1,11 +1,44 @@
 import type { Post } from "@/types";
 
 /** Auto-generated — markdown import + merge + news enrich
- * Added vibe-code-world-cup-2026-group-e at 2026-06-06T02:09:10.100Z
- * Count: 74
+ * Added news batch 019 (mbappe-real-madrid-greatest-messi-ronaldo) at 2026-06-06T02:21:29.087Z
+ * Count: 75
  */
 
 export const SEED_POSTS: Post[] = [
+  {
+    "id": "75",
+    "title": "Mbappé Just Dropped the Hottest Take of the World Cup: \"Only Barça Fans Disagree\"",
+    "slug": "mbappe-real-madrid-greatest-messi-ronaldo",
+    "content": "<div class=\"takeaways\">\n<h3>Key Takeaways</h3>\n<ul>\n<li>Mbappé: Real Madrid is the greatest club on earth — 'maybe except for Barça fans, the whole world agrees'</li>\n<li>He played with Messi at PSG and against Ronaldo in the UCL — calls them 'completely opposite' styles</li>\n<li>Torches the talent-vs-hard-work labels: 'only someone who has never played football would say that'</li>\n<li>Refuses to pick Messi or Ronaldo as GOAT — describes left vs right foot, agility vs explosiveness without naming either</li>\n<li>Interview drops eight days before World Cup 2026 as Mbappé leads France as consensus best player on the planet</li>\n</ul>\n</div>\n\n<p class=\"article-lead\">Kylian Mbappé sat down with Sorare ahead of the 2026 World Cup and said the quiet part loud — on Real Madrid, on Messi, on Ronaldo, and on every take you&apos;ve ever read on football Twitter.</p>\n\n<div class=\"article-body\">\n<p>Buckle up.</p>\n<figure class=\"article-image\"><img src=\"/uploads/articles/mbappe-real-madrid-greatest-messi-ronaldo/019-img-1.webp\" alt=\"Kylian Mbappé speaking in Sorare pre-World Cup interview\" loading=\"lazy\"></figure>\n<h2>&quot;Every Person on Earth Knows — Except Barça Fans&quot;</h2>\n<p>When asked about what it&apos;s like playing for Real Madrid, Mbappé didn&apos;t really pause:</p>\n<div class=\"pull-quote\">I think it's exactly what you imagine. Because you imagine that, maybe except for Barça fans, the whole world agrees this is the greatest club on the planet.</div>\n<p>Look, the man plays for Real Madrid. You can&apos;t exactly expect him to say anything else. But the way he said it — casual, matter-of-fact, almost like he was explaining gravity — is extremely on brand for someone who grew up idolizing the club and then actually signed for them.</p>\n<p>He followed it up:</p>\n<div class=\"pull-quote\">Barcelona shaped football history in one way, but Real Madrid is that landmark club — the reference point for the whole world.</div>\n<p>He then added that he wants to leave his mark on Madrid&apos;s history, because doing that means leaving a mark on football history itself. Twenty-six years old. Already writing legacy narratives.</p>\n<h2>The Messi vs Ronaldo Take That Actually Slaps</h2>\n<p>Mbappé is one of the very few people on earth who has genuinely <strong>played with Messi</strong> (PSG, 2021–2023) and <strong>played against Ronaldo</strong> (Champions League). That makes his opinion on the greatest debate in sports history worth something more than a Twitter poll.</p>\n<figure class=\"article-image\"><img src=\"/uploads/articles/mbappe-real-madrid-greatest-messi-ronaldo/019-img-2.webp\" alt=\"Messi and Ronaldo — the GOAT debate Mbappé refuses to settle\" loading=\"lazy\"></figure>\n<p>Here&apos;s what he said:</p>\n<div class=\"pull-quote\">I played with Messi and against Ronaldo. Ronaldo is my idol, but I also played alongside Messi. And because I've been on the pitch with both of them, I can tell you — they are completely different. Completely opposite. Left foot vs right foot, height, style — one is more agile, one is more direct, more explosive. And the other has a bigger picture view of the game.</div>\n<p>No names assigned to which description. Very intentional. Very Mbappé.</p>\n<h2>He Absolutely Torched the &quot;Talent vs Hard Work&quot; Debate</h2>\n<p>This is the part that&apos;s going viral for a reason.</p>\n<p>For years, fans have been slapping labels on Messi and Ronaldo: <em>Ronaldo is a grinder, Messi is pure God-given talent.</em> It&apos;s everywhere — documentaries, YouTube comments, bar arguments. Mbappé is tired of it.</p>\n<div class=\"pull-quote\">Saying one of them relies on effort and the other on talent — that's something only someone who has never played football would say. If you can tell me Ronaldo has no talent or Messi has no work ethic, then you've never put on boots and trained every single day.</div>\n<p>Then he called it &quot;from the heart.&quot;</p>\n<p>And honestly? Hard to argue. Ronaldo&apos;s VO2 max is off the charts — that&apos;s not just discipline, that&apos;s genetics. And anyone who watched Messi arrive at 4 AM for extra sessions in Barcelona&apos;s youth academy knows the effort argument cuts both ways.</p>\n<figure class=\"article-image\"><img src=\"/uploads/articles/mbappe-real-madrid-greatest-messi-ronaldo/019-img-3.webp\" alt=\"Mbappé in action for France ahead of World Cup 2026\" loading=\"lazy\"></figure>\n<h2>Why This Interview Hits Different Right Now</h2>\n<p>The World Cup kicks off in <strong>eight days</strong>. Mbappé just led France through qualifying, is fresh off a quiet but effective Real Madrid season, and is the consensus pick for the best player on the planet right now.</p>\n<p>He&apos;s walking into this tournament with the weight of France&apos;s expectations, a €16.8 billion squad behind him, and the kind of quiet confidence that only comes from someone who already has a World Cup winner&apos;s medal — at 19, in Russia 2018.</p>\n<p>For a guy who&apos;s usually reserved in interviews, this was unusually candid. Almost like he&apos;s ready to say whatever he wants because the football is about to do the talking.</p>\n<p>Eight days, Kylian. Let&apos;s go.</p>\n</div>\n\n<div class=\"faq-section\">\n<h2>Frequently Asked Questions</h2>\n<div class=\"faq-item\">\n<h3>What did Mbappé say about Real Madrid being the greatest club?</h3>\n<p>In a Sorare pre-World Cup interview, Mbappé said playing for Real Madrid is 'exactly what you imagine' and that 'except for Barça fans, the whole world agrees this is the greatest club on the planet.' He called Madrid the global 'reference point' in football history.</p>\n</div>\n<div class=\"faq-item\">\n<h3>What is Mbappé's take on Messi vs Ronaldo?</h3>\n<p>Mbappé said he played with Messi at PSG (2021–2023) and against Ronaldo in the Champions League. He described them as 'completely different' and 'completely opposite' — left foot vs right foot, agility vs direct explosiveness — but deliberately did not name which description applied to which player.</p>\n</div>\n<div class=\"faq-item\">\n<h3>What did Mbappé say about talent vs hard work in the GOAT debate?</h3>\n<p>He rejected the fan narrative that Ronaldo is pure effort and Messi is pure talent, calling it something 'only someone who has never played football would say.' He argued both have extraordinary talent and work ethic if you have ever worn boots and trained every day.</p>\n</div>\n<div class=\"faq-item\">\n<h3>When did Mbappé give this interview?</h3>\n<p>Coverage cites a Sorare interview published ahead of the 2026 World Cup, roughly eight days before kickoff, on June 6, 2026 — with Mbappé preparing to lead France at the tournament.</p>\n</div>\n<div class=\"faq-item\">\n<h3>Has Mbappé won the World Cup before?</h3>\n<p>Yes. Mbappé won the 2018 World Cup with France at age 19 in Russia, scoring in the final. He enters World Cup 2026 as France captain and one of the tournament favorites.</p>\n</div>\n</div>",
+    "intro_hook": "Kylian Mbappé sat down with Sorare ahead of the 2026 World Cup and said the quiet part loud — on Real Madrid, on Messi, on Ronaldo, and on every take you&apos;ve ever read on football Twitter.",
+    "hero_image": "/uploads/articles/mbappe-real-madrid-greatest-messi-ronaldo/019-img-1.webp",
+    "emotion_type": "icons",
+    "feed_type": "story",
+    "media_type": "article",
+    "tags": [
+      "kylian-mbappe",
+      "real-madrid",
+      "messi-vs-ronaldo",
+      "lionel-messi",
+      "cristiano-ronaldo",
+      "world-cup-2026",
+      "france-world-cup",
+      "sorare-interview",
+      "goat-debate",
+      "news"
+    ],
+    "seo_title": "Mbappé on Real Madrid GOAT Status & Messi vs Ronaldo — Sorare Interview",
+    "seo_description": "Kylian Mbappé says Real Madrid is the world's greatest club, calls Messi and Ronaldo 'completely opposite,' and shuts down the talent-vs-work debate. Pre-World Cup 2026 Sorare interview.",
+    "og_image": "/uploads/articles/mbappe-real-madrid-greatest-messi-ronaldo/019-img-2.webp",
+    "publish_status": "published",
+    "read_time_minutes": 5,
+    "view_count": 22300,
+    "share_count": 1561,
+    "ctr_score": 0.08,
+    "created_at": "2026-06-06T09:45:00.000Z",
+    "published_at": "2026-06-06T09:45:00.000Z"
+  },
   {
     "id": "74",
     "title": "The Vibe Code: World Cup 2026 Group E — The Group of Death",
